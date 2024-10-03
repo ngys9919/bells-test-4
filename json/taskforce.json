@@ -1,0 +1,32 @@
+[
+    {
+        "_id": {"$oid": "507f1f77bcf86cd799439029"},
+        "members": [
+          {
+            "employee_id": 1142,
+            "name": "Tan Ah Kow",
+            "role": "chairman"
+          },
+          {
+            "employee_id": 22,
+            "name": "Jon Tan",
+            "role": "treasurer"
+          },
+          {
+            "employee_id": 1003,
+            "name": "Alex Chua",
+            "role": "secretary"
+          },
+          {
+            "employee_id": 995,
+            "name": "Andrew Ng",
+            "role": "member"
+          },
+          {
+            "employee_id": 17,
+            "name": "Ang Chwee Eng",
+            "role": "member"
+          }
+      ]
+    }
+]

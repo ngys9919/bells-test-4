@@ -1,0 +1,62 @@
+[
+  {
+    "_id": { "$oid": "507f1f77bcf86cd799439011" },
+    "address1": "Block 118 #03-51",
+    "address2": "Yishun Street 17",
+    "address3": "Singapore 520118",
+    "mobile_phone": "81123456",
+    "home_phone": "63827908",
+    "office_phone": "62779015 Ext 331",
+    "office_did": "62779331",
+    "personal_email": "tanak@gmail.com.sg",
+    "company_email": "tanahkow@xyz.com"
+  },
+  {
+    "_id": { "$oid": "507f1f77bcf86cd799439012" },
+    "address1": "Block 165 #02-190",
+    "address2": "Woodlands Drive 70",
+    "address3": "Singapore 730165",
+    "mobile_phone": "92241290",
+    "home_phone": "63331988",
+    "office_phone": "62779015 Ext 237",
+    "office_did": "62779237",
+    "personal_email": "jt1199@yahoo.com",
+    "company_email": "jontan@xyz.com"
+  },
+  {
+    "_id": { "$oid": "507f1f77bcf86cd799439013" },
+    "address1": "Block 911 #11-55",
+    "address2": "Pasir Ris Avenue 5",
+    "address3": "Singapore 203911",
+    "mobile_phone": "88813756",
+    "home_phone": "62907771",
+    "office_phone": "62779015 Ext 190",
+    "office_did": "62779190",
+    "personal_email": "alexchua10@gmail.com",
+    "company_email": "alexchua@xyz.com"
+  },
+  {
+    "_id": { "$oid": "507f1f77bcf86cd799439014" },
+    "address1": "Block A #06-51",
+    "address2": "Casa Blanca",
+    "address3": "Singapore 730124",
+    "mobile_phone": "81811355",
+    "home_phone": "63229856",
+    "office_phone": "62779015 Ext 235",
+    "office_did": "62779235",
+    "personal_email": "andyng909@yahoo.com",
+    "company_email": "andrewng@xyz.com"
+  },
+  {
+    "_id": { "$oid": "507f1f77bcf86cd799439015" },
+    "address1": "Block 713 #03-61",
+    "address2": "Pasir Ris Avenue 10",
+    "address3": "Singapore 203713",
+    "mobile_phone": "92209220",
+    "home_phone": "63221093",
+    "office_phone": "62779015 Ext 220",
+    "office_did": "62779220",
+    "personal_email": "freddyang@gmail.com",
+    "company_email": "angchweeeng@xyz.com"
+  }
+]

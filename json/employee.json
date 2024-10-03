@@ -1,0 +1,84 @@
+[
+  {
+    "employee_id": 1142,
+    "name": "Tan Ah Kow",
+    "designation": "IT Manager",
+    "department": "MIS",
+    "contact": {
+      "_id": { "$oid": "507f1f77bcf86cd799439011" },
+      "office_phone": "62779015 Ext 331",
+      "office_did": "62779331",
+      "company_email": "tanahkow@xyz.com"
+    },
+    "date_joined": "21-8-2005",
+    "supervisor": {
+      "employee_id": 22,
+      "name": "Jon Tan"
+    }
+  },
+  {
+    "employee_id": 22,
+    "name": "Jon Tan",
+    "designation": "VP ",
+    "department": "RnD",
+    "contact": {
+      "_id": { "$oid": "507f1f77bcf86cd799439012" },
+      "office_phone": "62779015 Ext 237",
+      "office_did": "62779237",
+      "company_email": "jontan@xyz.com"
+    },
+    "date_joined": "11-4-1994",
+    "supervisor": null
+  },
+  {
+    "employee_id": 1003,
+    "name": "Alex Chua",
+    "designation": "Product Manager",
+    "department": "RnD",
+    "contact": {
+      "_id": { "$oid": "507f1f77bcf86cd799439013" },
+      "office_phone": "62779015 Ext 190",
+      "office_did": "62779190",
+      "company_email": "alexchua@xyz.com"
+    },
+    "date_joined": "12-3-2007",
+    "supervisor": {
+      "employee_id": 22,
+      "name": "Jon Tan"
+    }
+  },
+  {
+    "employee_id": 995,
+    "name": "Andrew Ng",
+    "designation": "Engineer",
+    "department": "RnD",
+    "contact": {
+      "_id": { "$oid": "507f1f77bcf86cd799439014" },
+      "office_phone": "62779015 Ext 235",
+      "office_did": "62779235",
+      "company_email": "andrewng@xyz.com"
+    },
+    "date_joined": "22-7-1994",
+    "supervisor": {
+      "employee_id": 22,
+      "name": "Jon Tan"
+    }
+  },
+  {
+    "employee_id": 17,
+    "name": "Ang Chwee Eng",
+    "designation": "Senior Product Engineer",
+    "department": "RnD",
+    "contact": {
+      "_id": { "$oid": "507f1f77bcf86cd799439015" },
+      "office_phone": "62779015 Ext 220",
+      "office_did": "62779220",
+      "company_email": "angchweeeng@xyz.com"
+    },
+    "date_joined": "12-9-2013",
+    "supervisor": {
+      "employee_id": 1003,
+      "name": "Alex Chua"
+    }
+  }
+]
