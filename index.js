@@ -105,6 +105,9 @@ async function main() {
     // eg
     // ?name=chicken rice
     // ?tags=appetizer&ingredients=chicken,duck
+
+    //GET => Read
+
     app.get("/recipes", verifyToken, async function (req, res) {
         try {
 
@@ -193,6 +196,8 @@ async function main() {
     });
 
     // we use app.post for HTTP METHOD POST - usually to add new data
+
+    // POST => Create
     app.post("/recipes", async function (req, res) {
         try {
 
@@ -243,6 +248,8 @@ async function main() {
             res.status(500);
         }
     })
+
+    //PUT => Update by replace
 
     app.put("/recipes/:id", async function (req, res) {
         try {
@@ -309,6 +316,9 @@ async function main() {
         }
     })
 
+
+    //DELETE => Delete
+    
     app.delete("/recipes/:id", async function (req, res) {
         try {
             let id = req.params.id;
