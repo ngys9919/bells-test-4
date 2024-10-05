@@ -29,14 +29,14 @@ function generateAccessToken(id, email) {
     // - parameter 2: token secret,
     // - parameter 3: options (to set expiresIn)
     let token = jwt.sign(payload, process.env.TOKEN_SECRET, {
-        'expiresIn':'1h' // h for hour, d for days, m is for minutes and s is for seconds
+        'expiresIn': '1h' // h for hour, d for days, m is for minutes and s is for seconds
     });
 
     return token;
 }
 
 // middleware: a function that executes before a route function
-function verifyToken(req,res, next) {
+function verifyToken(req, res, next) {
     // get the JWT from the headers
     let authHeader = req.headers['authorization'];
     let token = null;
@@ -47,7 +47,7 @@ function verifyToken(req,res, next) {
         if (token) {
             // the callback function in the third parameter will be called after
             // the token has been verified
-            jwt.verify(token, process.env.TOKEN_SECRET, function(err,payload){
+            jwt.verify(token, process.env.TOKEN_SECRET, function (err, payload) {
                 if (err) {
                     console.error(err);
                     return res.sendStatus(403);
@@ -56,7 +56,7 @@ function verifyToken(req,res, next) {
                 req.user = payload;
                 // call the next middleware or the route function
                 next();
-                
+
             })
         } else {
             return res.sendStatus(403);
@@ -130,7 +130,7 @@ async function main() {
             console.error("Error fetching taskforce record:", error);
             res.status(500);
         }
-    })    
+    })
 
     app.get("/supervisor", async function (req, res) {
         try {
@@ -158,14 +158,14 @@ async function main() {
 
             // Now, you can test this route with various query parameters. 
             // Here are some examples:
-            
+
             // Search by review_report: https://<server url>/supervisor?review_report=A
             // Search by name: https://<server url>/supervisor?name=jon%20tan
             // Combine multiple search criteria: https://<server url>/supervisor?review_report=ALex&name=JON%20Tan
-            
+
             // This implementation allows for flexible searching across your database. 
             // Users can combine different search criteria to find exactly what they're looking for.
-            
+
 
             // mongo shell: db.supervisor.find({},{name:1, review_report.name:1, review_report.rank:1})
             let supervisor = await db.collection("supervisor").find(criteria)
@@ -304,13 +304,13 @@ async function main() {
             // basic validation: 
             // make sure that name and employee_id must be present
             if ((!name) || (!employee_id)) {
-                return res.status(400).json({"error": "Missing fields required"})
+                return res.status(400).json({ "error": "Missing fields required" })
             }
 
 
 
-            let supervisorDocument={};
-            let rank=null;
+            let supervisorDocument = {};
+            let rank = null;
 
             if (supervisor === null) {
                 supervisorDocument = null;
@@ -321,114 +321,124 @@ async function main() {
                 })
 
                 if (!supervisorDocument) {
-                    return res.status(400).json({"error":"Invalid supervisor"})
+                    return res.status(400).json({ "error": "Invalid supervisor" })
                 }
-    
+
 
                 // Create the new supervisor object
-const newSupervisorDocument = {
-    _id: new ObjectId(),
-    employee_id: Number(employee_id),
-    name,
-    rank
-};
+                const newSupervisorDocument = {
+                    // _id: new ObjectId(),
+                    employee_id: Number(employee_id),
+                    name,
+                    rank
+                };
 
-supervisorDocument = {
-    employee_id: Number(supervisor.employee_id),
-    name:supervisor.name
-};
+                supervisorDocument = {
+                    employee_id: Number(supervisor.employee_id),
+                    name: supervisor.name
+                };
 
-// Update/add the supervisor collection
-const result = await db.collection('supervisor').updateOne(
-    { name: supervisor.name },
-    { $push: { review_report: newSupervisorDocument } }
-);
+                // let result = false;
+
+                //review_report is object
+                // Add to the supervisor collection
+                // const result = await db.collection("supervisor")
+                // .insertOne(newSupervisorDocument);
+                //review_report is array
+                // Push to the supervisor collection
+
+                const result = await db.collection('supervisor').updateOne(
+                    { name: supervisor.name },
+                    { $push: { review_report: newSupervisorDocument } }
+                );
 
 
 
-if (result.matchedCount === 0) {
-    return res.status(404).json({ error: 'Supervisor not found' });
-}
 
-// res.status(201).json({
-    // 'message': 'Supervisor added successfully',
-    // 'supervisorId': newSupervisorDocument._id
-// });
 
-            // }
+                if (result.matchedCount === 0) {
+                    return res.status(404).json({ error: 'Supervisor not found' });
+                }
 
-            let address1 = contact.address1;
-            let address2 = contact.address2;
-            let address3 = contact.address3;
-            let mobile_phone = contact.mobile_phone;
-            let home_phone = contact.home_phone;
-            let office_phone = contact.office_phone;
-            let office_did = contact.office_did;
-            let personal_email = contact.personal_email;
-            let company_email = contact.company_email;
+                // res.status(201).json({
+                // 'message': 'Supervisor added successfully',
+                // 'supervisorId': newSupervisorDocument._id
+                // });
 
-            // find all the tags that the client want to attach to the employee document
+                // }
+
+                let address1 = contact.address1;
+                let address2 = contact.address2;
+                let address3 = contact.address3;
+                let mobile_phone = contact.mobile_phone;
+                let home_phone = contact.home_phone;
+                let office_phone = contact.office_phone;
+                let office_did = contact.office_did;
+                let personal_email = contact.personal_email;
+                let company_email = contact.company_email;
+
+                // find all the tags that the client want to attach to the employee document
                 // const contactDocument = await db.collection('contact').findOne({
-                    // "name": supervisor.name
+                // "name": supervisor.name
                 // })
 
                 // if (!contactDocument) {
-                    // return res.status(400).json({"error":"Invalid contact"})
+                // return res.status(400).json({"error":"Invalid contact"})
                 // }
-    
+
                 const newContactId = new ObjectId();
                 // Create the new contact object
-const newContactDocument = {
-    _id: newContactId,
-    address1,
-    address2,
-    address3,
-    mobile_phone,
-    home_phone,
-    office_phone,
-    office_did,
-    personal_email,
-    company_email
-};
+                const newContactDocument = {
+                    _id: newContactId,
+                    address1,
+                    address2,
+                    address3,
+                    mobile_phone,
+                    home_phone,
+                    office_phone,
+                    office_did,
+                    personal_email,
+                    company_email
+                };
 
-// Add the new contact
-// insert the new contact document into the collection
-let result3 = await db.collection("contact").insertOne(newContactDocument);
-
-
-if (result3.matchedCount === 0) {
-    return res.status(404).json({ error: 'Contact not found' });
-}
-
-// res.status(201).json({
-    // 'message': 'Contact added successfully',
-    // 'contactId': newContactDocument._id
-// });
+                // Add the new contact
+                // insert the new contact document into the collection
+                let result3 = await db.collection("contact").insertOne(newContactDocument);
 
 
-const contactDocument = {
-    _id: newContactDocument._id,
-    office_phone,
-    office_did,
-    company_email
-};
+                if (result3.matchedCount === 0) {
+                    return res.status(404).json({ error: 'Contact not found' });
+                }
 
-            let newEmployeeDocument = {
-                employee_id: Number(employee_id),
-                name,
-                designation, department,
-                "contact": contactDocument,
-                date_joined,
-                "supervisor": supervisorDocument  
+                // res.status(201).json({
+                // 'message': 'Contact added successfully',
+                // 'contactId': newContactDocument._id
+                // });
+
+
+                const contactDocument = {
+                    _id: newContactDocument._id,
+                    office_phone,
+                    office_did,
+                    company_email
+                };
+
+                let newEmployeeDocument = {
+                    employee_id: Number(employee_id),
+                    name,
+                    designation, department,
+                    "contact": contactDocument,
+                    date_joined,
+                    "supervisor": supervisorDocument
+                }
+
+                // insert the new employee document into the collection
+                let result2 = await db.collection("employee").insertOne(newEmployeeDocument);
+                res.status(201).json({
+                    'message': 'New employee has been created',
+                    '_id': result2.insertedId // insertedId is the _id of the new document
+                })
             }
-
-            // insert the new employee document into the collection
-            let result2 = await db.collection("employee").insertOne(newEmployeeDocument);
-            res.status(201).json({
-                'message': 'New employee has been created',
-                '_id': result2.insertedId // insertedId is the _id of the new document
-            })
-        }
 
         } catch (e) {
             console.error(e);
@@ -438,13 +448,13 @@ const contactDocument = {
 
     //PUT => Update by replace
 
-    app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", async function (req, res) {
+    app.put("/employee/:id/contact/:contactId", async function (req, res) {
         try {
 
             let id = req.params.id;
             let contactId = req.params.contactId;
-            let supervisorId = req.params.supervisorId;
-    
+            // let supervisorId = req.params.supervisorId;
+
             // employee_id, name, designation, department, contact, date_joined, supervisor
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
             let { employee_id, name, designation, department, contact, date_joined, supervisor } = req.body;
@@ -452,156 +462,165 @@ const contactDocument = {
             // basic validation: 
             // make sure that name and employee_id is valid
             if ((!name) || (!employee_id)) {
-                return res.status(400).json({"error": "Missing fields required"})
+                return res.status(400).json({ "error": "Missing fields required" })
             }
 
-            let supervisorDocument={};
-            let rank=supervisor.rank;
+            let supervisorDocument = {};
+            let rank = supervisor.rank;
 
             if (supervisor === null) {
                 supervisorDocument = null;
             } else {
                 // find the _id of the related and add it to the supervisor
                 supervisorDocument = await db.collection('supervisor').findOne({
-                    "name": supervisor.name
-                })
-
-                if (!supervisorDocument) {
-                    return res.status(400).json({"error":"Invalid supervisor"})
-                }
-    
-
-                // Update the new supervisor object
-const updatedSupervisorDocument = {
-    // _id: new ObjectId(supervisorId),
-    employee_id: Number(employee_id),
-    name,
-    rank
-};
-
-supervisorDocument = {
-    employee_id: Number(supervisor.employee_id),
-    name:supervisor.name
-};
-
-// Update/add the supervisor collection
-// const result = await db.collection('supervisor').updateOne(
-    // { name: supervisor.name },
-    // { $push: { review_report: updatedSupervisorDocument } }
-// );
-
-// Update the specific supervisor.name in the supervisor document
-const result = await db.collection("supervisor")
-                .updateOne({
-                    name: supervisor.name
-                }, {
-                    "$set": { review_report: updatedSupervisorDocument }
+                    "name": supervisor.name,
                 });
 
+                if (!supervisorDocument) {
+                    return res.status(400).json({ "error": "Invalid supervisor" })
+                }
 
-if (result.matchedCount === 0) {
-    return res.status(404).json({ error: 'Supervisor not found' });
-}
+                // const supervisorIdDB = supervisorDocument._id;
 
-// res.status(201).json({
-    // 'message': 'Supervisor added successfully',
-    // 'supervisorId': updatedSupervisorDocument.supervisor_id
-// });
 
-            // }
 
-            let address1 = contact.address1;
-            let address2 = contact.address2;
-            let address3 = contact.address3;
-            let mobile_phone = contact.mobile_phone;
-            let home_phone = contact.home_phone;
-            let office_phone = contact.office_phone;
-            let office_did = contact.office_did;
-            let personal_email = contact.personal_email;
-            let company_email = contact.company_email;
+                // Update the new supervisor object
+                const updatedSupervisorDocument = {
+                    // _id: new ObjectId(supervisorId),
+                    employee_id: Number(employee_id),
+                    name,
+                    rank
+                };
 
-            // find all the tags that the client want to attach to the employee document
+                supervisorDocument = {
+                    employee_id: Number(supervisor.employee_id),
+                    name: supervisor.name
+                };
+
+                // let result = false;
+
+                //switch supervisor, so push to last array element
+                // if (supervisorIdDB != supervisorId) {
+                // Add to the supervisor collection
+                const result = await db.collection('supervisor').updateOne(
+                    { name: supervisor.name },
+                    { $push: { review_report: updatedSupervisorDocument } }
+                );
+
+                //same supervisor, so update the array element
+                // } else {
+                // Update the specific supervisor.name in the supervisor document
+                // const result = await db.collection("supervisor")
+                // .updateOne({
+                // name: supervisor.name
+                // }, {
+                // "$set": { review_report: updatedSupervisorDocument }
+                // });
+                // }
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).json({ error: 'Supervisor not found' });
+                }
+
+                // res.status(201).json({
+                // 'message': 'Supervisor added successfully',
+                // 'supervisorId': updatedSupervisorDocument.supervisor_id
+                // });
+
+                // }
+
+                let address1 = contact.address1;
+                let address2 = contact.address2;
+                let address3 = contact.address3;
+                let mobile_phone = contact.mobile_phone;
+                let home_phone = contact.home_phone;
+                let office_phone = contact.office_phone;
+                let office_did = contact.office_did;
+                let personal_email = contact.personal_email;
+                let company_email = contact.company_email;
+
+                // find all the tags that the client want to attach to the employee document
                 let updatedContactDocument = await db.collection('contact').findOne({
                     _id: new ObjectId(contactId)
                 })
 
                 if (!updatedContactDocument) {
-                    return res.status(400).json({"error":"Invalid contact"})
+                    return res.status(400).json({ "error": "Invalid contact" })
                 }
-    
+
                 // const newContactId = new ObjectId();
                 // Update the new contact object
-updatedContactDocument = {
-    _id: new ObjectId(contactId),
-    address1,
-    address2,
-    address3,
-    mobile_phone,
-    home_phone,
-    office_phone,
-    office_did,
-    personal_email,
-    company_email
-};
+                updatedContactDocument = {
+                    _id: new ObjectId(contactId),
+                    address1,
+                    address2,
+                    address3,
+                    mobile_phone,
+                    home_phone,
+                    office_phone,
+                    office_did,
+                    personal_email,
+                    company_email
+                };
 
-// Update the new contact
-// Update the new contact document into the collection
-// let result3 = await db.collection("contact").insertOne(newContactDocument);
-let result3 = await db.collection("contact")
-                .updateOne({
-                    "_id": new ObjectId(contactId)
-                }, {
-                    "$set": updatedContactDocument
-                });
-
-
-if (result3.matchedCount === 0) {
-    return res.status(404).json({ error: 'Contact not found' });
-}
-
-// res.status(201).json({
-    // 'message': 'Contact added successfully',
-    // 'contactId': updatedContactDocument._id
-// });
+                // Update the new contact
+                // Update the new contact document into the collection
+                // let result3 = await db.collection("contact").insertOne(newContactDocument);
+                let result3 = await db.collection("contact")
+                    .updateOne({
+                        "_id": new ObjectId(contactId)
+                    }, {
+                        "$set": updatedContactDocument
+                    });
 
 
-const contactDocument = {
-    _id: updatedContactDocument._id,
-    office_phone,
-    office_did,
-    company_email
-};
+                if (result3.matchedCount === 0) {
+                    return res.status(404).json({ error: 'Contact not found' });
+                }
 
-            let updatedEmployeeDocument = {
-                employee_id: Number(employee_id),
-                name,
-                designation, department,
-                "contact": contactDocument,
-                date_joined,
-                "supervisor": supervisorDocument  
-            }
+                // res.status(201).json({
+                // 'message': 'Contact added successfully',
+                // 'contactId': updatedContactDocument._id
+                // });
 
 
+                const contactDocument = {
+                    _id: updatedContactDocument._id,
+                    office_phone,
+                    office_did,
+                    company_email
+                };
 
-            // update the new employee document into the collection
-            let result2 = await db.collection("employee")
-                .updateOne({
-                    "_id": new ObjectId(id)
-                }, {
-                    "$set": updatedEmployeeDocument
-                });
+                let updatedEmployeeDocument = {
+                    employee_id: Number(employee_id),
+                    name,
+                    designation, department,
+                    "contact": contactDocument,
+                    date_joined,
+                    "supervisor": supervisorDocument
+                }
 
-            // if there is no matches, means no update took place
-            if (result2.matchedCount == 0) {
-                return res.status(404).json({
-                    "error": "Employee not found"
+
+
+                // update the new employee document into the collection
+                let result2 = await db.collection("employee")
+                    .updateOne({
+                        "_id": new ObjectId(id)
+                    }, {
+                        "$set": updatedEmployeeDocument
+                    });
+
+                // if there is no matches, means no update took place
+                if (result2.matchedCount == 0) {
+                    return res.status(404).json({
+                        "error": "Employee not found"
+                    })
+                }
+
+                res.status(200).json({
+                    "message": "Employee updated"
                 })
             }
-
-            res.status(200).json({
-                "message": "Employee updated"
-            })
-        }
 
         } catch (e) {
             console.error(e);
@@ -611,7 +630,7 @@ const contactDocument = {
 
 
     //DELETE => Delete
-    
+
     app.delete("/employee/:id", async function (req, res) {
         try {
             let id = req.params.id;
@@ -661,7 +680,7 @@ const contactDocument = {
             let result = await db.collection("users").insertOne(userDocument);
 
             res.json({
-                "message":"New user account has been created",
+                "message": "New user account has been created",
                 result
             })
 
@@ -673,12 +692,12 @@ const contactDocument = {
 
 
     // the client is supposed to provide the email and password in req.body
-    app.post('/login', async function(req,res){
+    app.post('/login', async function (req, res) {
         try {
-            let {email, password} = req.body;
+            let { email, password } = req.body;
             if (!email || !password) {
                 return res.status(400).json({
-                    'message':'Please provide email and password'
+                    'message': 'Please provide email and password'
                 })
             }
 
@@ -708,7 +727,7 @@ const contactDocument = {
         }
     })
 
-    app.get('/profile', verifyToken, async function(req, res){
+    app.get('/profile', verifyToken, async function (req, res) {
 
         // get the payload
         let user = req.user;
