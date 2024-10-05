@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const dbname = "sctp05-recipes"; // CHANGE THIS TO YOUR ACTUAL DATABASE NAME
+const dbname = "company_xyz"; // CHANGE THIS TO YOUR ACTUAL DATABASE NAME
 
 // enable dotenv (allow Express application to read .env files)
 require('dotenv').config();
@@ -94,44 +94,56 @@ async function main() {
 
     app.get('/', function (req, res) {
         res.json({
-            "message": "Hello World!"
+            "message": "RESTful API with Mongo and Express!"
         });
     });
 
 
-    // There's a convention for RESTFul API when it comes to writing the URL
-    // The URL should function like a file path  (always a resource, a noun)
-    // Allow the user to search by name, tags, cuisine, ingredients:
-    // eg
-    // ?name=chicken rice
-    // ?tags=appetizer&ingredients=chicken,duck
-
-    //GET => Read
-
-    app.get("/recipes", verifyToken, async function (req, res) {
+    app.get("/taskforce", async function (req, res) {
         try {
 
             // this is the same as let tags = req.query.tags etc. etc.
             // syntax: object destructuring
-            let { tags, cuisine, ingredients, name } = req.query;
+            let { members } = req.query;
 
             let criteria = {};
 
-            if (tags) {
-                criteria["tags.name"] = {
-                    "$in": tags.split(",")
+            if (members) {
+                criteria["members.name"] = {
+                    "$in": members.split(",").map(function (i) {
+                        // case-in sensiitve search
+                        return new RegExp(i, 'i');
+                    })
                 }
             }
 
-            if (cuisine) {
-                criteria["cuisine.name"] = {
-                    "$regex": cuisine, "$options": "i"
-                }
-            }
+            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            let taskforce = await db.collection("taskforce").find(criteria)
+                .project({
+                    "members.name": 1,
+                    "members.role": 1
+                }).toArray();
+            res.json({
+                'taskforce': taskforce
+            })
+        } catch (error) {
+            console.error("Error fetching taskforce record:", error);
+            res.status(500);
+        }
+    })    
 
-            if (ingredients) {
-                criteria["ingredients.name"] = {
-                    "$in": ingredients.split(",").map(function (i) {
+    app.get("/supervisor", async function (req, res) {
+        try {
+
+            // this is the same as let tags = req.query.tags etc. etc.
+            // syntax: object destructuring
+            let { review_report, name } = req.query;
+
+            let criteria = {};
+
+            if (review_report) {
+                criteria["review_report.employee_id"] = {
+                    "$in": review_report.split(",").map(function (i) {
                         // case-in sensiitve search
                         return new RegExp(i, 'i');
                     })
@@ -144,25 +156,130 @@ async function main() {
                 }
             }
 
-            // mongo shell: db.recipes.find({},{name:1, cuisine:1, tags:1, prepTime:1})
-            let recipes = await db.collection("recipes").find(criteria)
+            // Now, you can test this route with various query parameters. 
+            // Here are some examples:
+            
+            // Search by review_report: https://<server url>/supervisor?review_report=A
+            // Search by name: https://<server url>/supervisor?name=jon%20tan
+            // Combine multiple search criteria: https://<server url>/supervisor?review_report=A&name=JON%20Tan
+            
+            // This implementation allows for flexible searching across your database. 
+            // Users can combine different search criteria to find exactly what they're looking for.
+            
+
+            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            let supervisor = await db.collection("supervisor").find(criteria)
                 .project({
                     "name": 1,
-                    "cuisine": 1,
-                    "tags": 1,
-                    "prepTime": `1`
+                    "review_report.name": 1,
+                    "review_report.rank": 1
                 }).toArray();
             res.json({
-                'recipes': recipes
+                'supervisor': supervisor
             })
         } catch (error) {
-            console.error("Error fetching recipes:", error);
+            console.error("Error fetching supervisor record:", error);
             res.status(500);
         }
     })
 
-    // /recipes/12345A => get the details of the recipe with _id 12345A
-    app.get("/recipes/:id", async function (req, res) {
+    app.get("/contact", async function (req, res) {
+        try {
+
+            // this is the same as let tags = req.query.tags etc. etc.
+            // syntax: object destructuring
+            let contact = req.query.contact;
+
+            let criteria = {};
+
+            if (contact) {
+                criteria["contact._id"] = {
+                    "$in": contact.split(",").map(function (i) {
+                        // case-in sensiitve search
+                        return new RegExp(i, 'i');
+                    })
+                }
+            }
+
+            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            contact = await db.collection("contact").find(criteria)
+                .project({
+                    "address1": 1,
+                    "address2": 1,
+                    "address3": 1,
+                    "mobile_phone": 1,
+                    "home_phone": 1,
+                    "personal_email": 1
+                }).toArray();
+            res.json({
+                'contact': contact
+            })
+        } catch (error) {
+            console.error("Error fetching contact record:", error);
+            res.status(500);
+        }
+    })
+
+    // There's a convention for RESTFul API when it comes to writing the URL
+    // The URL should function like a file path  (always a resource, a noun)
+    // Allow the user to search by name, tags, cuisine, ingredients:
+    // eg
+    // ?name=chicken rice
+    // ?tags=appetizer&ingredients=chicken,duck
+
+    //GET => Read
+
+    // app.get("/employee", verifyToken, async function (req, res) {
+    app.get("/employee", async function (req, res) {
+        try {
+
+            // this is the same as let tags = req.query.tags etc. etc.
+            // syntax: object destructuring
+            let { supervisor, contact, name } = req.query;
+
+            let criteria = {};
+
+            if (supervisor) {
+                criteria["supervisor.name"] = {
+                    "$in": supervisor.split(",")
+                }
+            }
+
+            if (contact) {
+                criteria["contact._id"] = {
+                    "$in": contact.split(",").map(function (i) {
+                        // case-in sensiitve search
+                        return new RegExp(i, 'i');
+                    })
+                }
+            }
+
+            if (name) {
+                criteria["name"] = {
+                    "$regex": name, "$options": "i"
+                }
+            }
+
+            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            let employee = await db.collection("employee").find(criteria)
+                .project({
+                    "name": 1,
+                    "employee_id": 1,
+                    "designation": 1,
+                    "contact": 1,
+                    "supervisor": 1
+                }).toArray();
+            res.json({
+                'employee': employee
+            })
+        } catch (error) {
+            console.error("Error fetching employee record:", error);
+            res.status(500);
+        }
+    })
+
+    // /employee/1003 => get the details of the employee with employee_id 1003
+    app.get("/employee/:id", async function (req, res) {
         try {
 
             // get the id of the recipe that we want to get full details off
@@ -171,26 +288,26 @@ async function main() {
             // mongo shell: db.recipes.find({
             //   _id:ObjectId(id)
             //  })
-            let recipe = await db.collection('recipes').findOne({
+            let employee = await db.collection('employee').findOne({
                 "_id": new ObjectId(id)
             });
 
             // check the recipe is not null
             // because .findOne will return null if no document
             // not found
-            if (!recipe) {
+            if (!employee) {
                 return res.status(404).json({
-                    "error": "Sorry, recipie not found"
+                    "error": "Sorry, employee not found"
                 })
             }
 
             // send back a response
             res.json({
-                'recipes': recipe
+                'employee': employee
             })
 
         } catch (error) {
-            console.error("Error fetching recipe:", error);
+            console.error("Error fetching employee:", error);
             res.status(500);
         }
     });
@@ -198,48 +315,49 @@ async function main() {
     // we use app.post for HTTP METHOD POST - usually to add new data
 
     // POST => Create
-    app.post("/recipes", async function (req, res) {
+    app.post("/employee", async function (req, res) {
         try {
 
-            // name, cuisine, prepTime, cookTime, servings, ingredients, instructions and tags
+            // name, employee_id, designation, department, contact, date_joined and supervisor
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
-            let { name, cuisine, prepTime, cookTime, servings, ingredients, instructions, tags } = req.body;
+            let { name, employee_id, designation, department, contact, date_joined, supervisor } = req.body;
 
-            // basic validation: make sure that name, cuisine, ingredients, instructions and tags
-            if (!name || !cuisine || !ingredients || !instructions || !tags) {
+            // basic validation: make sure that name, employee_id, designation, department, contact, date_joined and supervisor
+            if (!name || !employee_id) {
                 return res.status(400).json({
                     "error": "Missing fields required"
                 })
             }
 
-            // find the _id of the related cuisine and add it to the new recipe
-            let cuisineDoc = await db.collection('cuisines').findOne({
-                "name": cuisine
+            // find the _id of the related  and add it to the new recipe
+            let supervisorDocument = await db.collection('supervisor').findOne({
+                "name": supervisor
             })
 
-            if (!cuisineDoc) {
-                return res.status(400).json({ "error": "Invalid cuisine" })
+            if (!supervisorDocument) {
+                return res.status(400).json({ "error": "Invalid employee" })
             }
 
-            // find all the tags that the client want to attach to the recipe document
-            const tagDocuments = await db.collection('tags').find({
+            // find all the tags that the client want to attach to the employee document
+            const contactDocument = await db.collection('contact').find({
                 'name': {
-                    '$in': tags
+                    '$in': contact
                 }
             }).toArray();
 
-            let newRecipeDocument = {
+            let newEmployeeDocument = {
                 name,
-                "cuisine": cuisineDoc,
-                prepTime, cookTime, servings, ingredients, instructions,
-                "tags": tagDocuments
+                employee_id,
+                "supervisor": supervisorDocument,
+                designation, department, date_joined,
+                "contact": contactDocument
             }
 
             // insert the new recipe document into the collection
-            let result = await db.collection("recipes").insertOne(newRecipeDocument);
+            let result = await db.collection("employee").insertOne(newEmployeeDocument);
             res.status(201).json({
-                'message': 'New recipe has been created',
-                'recipeId': result.insertedId // insertedId is the _id of the new document
+                'message': 'New employee has been created',
+                'employeeId': result.insertedId // insertedId is the _id of the new document
             })
 
 
@@ -251,62 +369,63 @@ async function main() {
 
     //PUT => Update by replace
 
-    app.put("/recipes/:id", async function (req, res) {
+    app.put("/employee/:id", async function (req, res) {
         try {
 
             let id = req.params.id;
 
             // name, cuisine, prepTime, cookTime, servings, ingredients, instructions and tags
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
-            let { name, cuisine, prepTime, cookTime, servings, ingredients, instructions, tags } = req.body;
+            let { employee_id, name, designation, department, contact, date_joined, supervisor } = req.body;
 
             // basic validation: make sure that name, cuisine, ingredients, instructions and tags
-            if (!name || !cuisine || !ingredients || !instructions || !tags) {
+            if (!name) {
                 return res.status(400).json({
                     "error": "Missing fields required"
                 })
             }
 
             // find the _id of the related cuisine and add it to the new recipe
-            let cuisineDoc = await db.collection('cuisines').findOne({
-                "name": cuisine
+            let supervisorDocument = await db.collection('supervisor').findOne({
+                "name": supervisor
             })
 
-            if (!cuisineDoc) {
-                return res.status(400).json({ "error": "Invalid cuisine" })
+            if (!supervisorDocument) {
+                return res.status(400).json({ "error": "Invalid supervisor" })
             }
 
             // find all the tags that the client want to attach to the recipe document
-            const tagDocuments = await db.collection('tags').find({
+            const contactDocument = await db.collection('contact').find({
                 'name': {
-                    '$in': tags
+                    '$in': contact
                 }
             }).toArray();
 
-            let updatedRecipeDocument = {
+            let updatedEmployeeDocument = {
                 name,
-                "cuisine": cuisineDoc,
-                prepTime, cookTime, servings, ingredients, instructions,
-                "tags": tagDocuments
+                employee_id,
+                "supervisor": supervisorDocument,
+                designation, department, date_joined,
+                "contact": contactDocument
             }
 
             // insert the new recipe document into the collection
-            let result = await db.collection("recipes")
+            let result = await db.collection("employee")
                 .updateOne({
                     "_id": new ObjectId(id)
                 }, {
-                    "$set": updatedRecipeDocument
+                    "$set": updatedEmployeeDocument
                 });
 
             // if there is no matches, means no update took place
             if (result.matchedCount == 0) {
                 return res.status(404).json({
-                    "error": "Recipe not found"
+                    "error": "Employee not found"
                 })
             }
 
             res.status(200).json({
-                "message": "Recipe updated"
+                "message": "Employee updated"
             })
 
 
@@ -319,26 +438,26 @@ async function main() {
 
     //DELETE => Delete
     
-    app.delete("/recipes/:id", async function (req, res) {
+    app.delete("/employee/:id", async function (req, res) {
         try {
             let id = req.params.id;
 
             // mongo shell:
             // db.recipes.deleteOne({
-            //    _id:ObjectId)id
+            //    _id:ObjectId(id)
             //})
-            let results = await db.collection('recipes').deleteOne({
+            let results = await db.collection('employee').deleteOne({
                 "_id": new ObjectId(id)
             });
 
             if (results.deletedCount == 0) {
                 return res.status(404).json({
-                    "error": "Recipe not found"
+                    "error": "Employee not found"
                 });
             }
 
             res.json({
-                "message": "Recipe has been deleted successful"
+                "message": "Employee has been deleted successful"
             })
 
         } catch (e) {
