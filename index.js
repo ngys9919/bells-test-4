@@ -117,7 +117,7 @@ async function main() {
                 }
             }
 
-            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            // mongo shell: db.taskforce.find({},{members.name:1, members.role:1})
             let taskforce = await db.collection("taskforce").find(criteria)
                 .project({
                     "members.name": 1,
@@ -142,9 +142,9 @@ async function main() {
             let criteria = {};
 
             if (review_report) {
-                criteria["review_report.employee_id"] = {
+                criteria["review_report.name"] = {
                     "$in": review_report.split(",").map(function (i) {
-                        // case-in sensiitve search
+                        // case-insensitive search
                         return new RegExp(i, 'i');
                     })
                 }
@@ -161,13 +161,13 @@ async function main() {
             
             // Search by review_report: https://<server url>/supervisor?review_report=A
             // Search by name: https://<server url>/supervisor?name=jon%20tan
-            // Combine multiple search criteria: https://<server url>/supervisor?review_report=A&name=JON%20Tan
+            // Combine multiple search criteria: https://<server url>/supervisor?review_report=ALex&name=JON%20Tan
             
             // This implementation allows for flexible searching across your database. 
             // Users can combine different search criteria to find exactly what they're looking for.
             
 
-            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            // mongo shell: db.supervisor.find({},{name:1, review_report.name:1, review_report.rank:1})
             let supervisor = await db.collection("supervisor").find(criteria)
                 .project({
                     "name": 1,
@@ -186,22 +186,9 @@ async function main() {
     app.get("/contact", async function (req, res) {
         try {
 
-            // this is the same as let tags = req.query.tags etc. etc.
-            // syntax: object destructuring
-            let contact = req.query.contact;
-
             let criteria = {};
 
-            if (contact) {
-                criteria["contact._id"] = {
-                    "$in": contact.split(",").map(function (i) {
-                        // case-in sensiitve search
-                        return new RegExp(i, 'i');
-                    })
-                }
-            }
-
-            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            // mongo shell: db.contact.find({},{address1:1, address2:1, address3:1, mobile_phone:1, home_phone:1, personal_email:1})
             contact = await db.collection("contact").find(criteria)
                 .project({
                     "address1": 1,
@@ -210,6 +197,7 @@ async function main() {
                     "mobile_phone": 1,
                     "home_phone": 1,
                     "personal_email": 1
+
                 }).toArray();
             res.json({
                 'contact': contact
@@ -235,7 +223,7 @@ async function main() {
 
             // this is the same as let tags = req.query.tags etc. etc.
             // syntax: object destructuring
-            let { supervisor, contact, name } = req.query;
+            let { supervisor, name } = req.query;
 
             let criteria = {};
 
@@ -245,22 +233,13 @@ async function main() {
                 }
             }
 
-            if (contact) {
-                criteria["contact._id"] = {
-                    "$in": contact.split(",").map(function (i) {
-                        // case-in sensiitve search
-                        return new RegExp(i, 'i');
-                    })
-                }
-            }
-
             if (name) {
                 criteria["name"] = {
                     "$regex": name, "$options": "i"
                 }
             }
 
-            // mongo shell: db.recipes.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
+            // mongo shell: db.employee.find({},{name:1, employee_id:1, designation:1, contact:1, supervisor:1})
             let employee = await db.collection("employee").find(criteria)
                 .project({
                     "name": 1,
@@ -278,14 +257,14 @@ async function main() {
         }
     })
 
-    // /employee/1003 => get the details of the employee with employee_id 1003
+    // /employee/66fe4e9fcb3d836d2346b510 => get the details of the employee with _id = 66fe4e9fcb3d836d2346b510
     app.get("/employee/:id", async function (req, res) {
         try {
 
             // get the id of the recipe that we want to get full details off
             let id = req.params.id;
 
-            // mongo shell: db.recipes.find({
+            // mongo shell: db.employee.find({
             //   _id:ObjectId(id)
             //  })
             let employee = await db.collection('employee').findOne({
@@ -320,46 +299,136 @@ async function main() {
 
             // name, employee_id, designation, department, contact, date_joined and supervisor
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
-            let { name, employee_id, designation, department, contact, date_joined, supervisor } = req.body;
+            let { employee_id, name, designation, department, contact, date_joined, supervisor } = req.body;
 
-            // basic validation: make sure that name, employee_id, designation, department, contact, date_joined and supervisor
-            if (!name || !employee_id) {
-                return res.status(400).json({
-                    "error": "Missing fields required"
+            // basic validation: 
+            // make sure that name and employee_id must be present
+            if ((!name) || (!employee_id)) {
+                return res.status(400).json({"error": "Missing fields required"})
+            }
+
+
+
+            let supervisorDocument={};
+            let rank=null;
+
+            if (supervisor === null) {
+                supervisorDocument = null;
+            } else {
+                // find the _id of the related and add it to the supervisor
+                supervisorDocument = await db.collection('supervisor').findOne({
+                    "name": supervisor.name
                 })
-            }
 
-            // find the _id of the related  and add it to the new recipe
-            let supervisorDocument = await db.collection('supervisor').findOne({
-                "name": supervisor
-            })
+                if (!supervisorDocument) {
+                    return res.status(400).json({"error":"Invalid supervisor"})
+                }
+    
 
-            if (!supervisorDocument) {
-                return res.status(400).json({ "error": "Invalid employee" })
-            }
+                // Create the new supervisor object
+const newSupervisorDocument = {
+    _id: new ObjectId(),
+    employee_id: Number(employee_id),
+    name,
+    rank
+};
+
+supervisorDocument = {
+    employee_id: Number(supervisor.employee_id),
+    name:supervisor.name
+};
+
+// Update/add the supervisor collection
+const result = await db.collection('supervisor').updateOne(
+    { name: supervisor.name },
+    { $push: { review_report: newSupervisorDocument } }
+);
+
+
+
+if (result.matchedCount === 0) {
+    return res.status(404).json({ error: 'Supervisor not found' });
+}
+
+// res.status(201).json({
+    // 'message': 'Supervisor added successfully',
+    // 'supervisorId': newSupervisorDocument._id
+// });
+
+            // }
+
+            let address1 = contact.address1;
+            let address2 = contact.address2;
+            let address3 = contact.address3;
+            let mobile_phone = contact.mobile_phone;
+            let home_phone = contact.home_phone;
+            let office_phone = contact.office_phone;
+            let office_did = contact.office_did;
+            let personal_email = contact.personal_email;
+            let company_email = contact.company_email;
 
             // find all the tags that the client want to attach to the employee document
-            const contactDocument = await db.collection('contact').find({
-                'name': {
-                    '$in': contact
-                }
-            }).toArray();
+                // const contactDocument = await db.collection('contact').findOne({
+                    // "name": supervisor.name
+                // })
+
+                // if (!contactDocument) {
+                    // return res.status(400).json({"error":"Invalid contact"})
+                // }
+    
+                const newContactId = new ObjectId();
+                // Create the new contact object
+const newContactDocument = {
+    _id: newContactId,
+    address1,
+    address2,
+    address3,
+    mobile_phone,
+    home_phone,
+    office_phone,
+    office_did,
+    personal_email,
+    company_email
+};
+
+// Add the new contact
+// insert the new contact document into the collection
+let result3 = await db.collection("contact").insertOne(newContactDocument);
+
+
+if (result3.matchedCount === 0) {
+    return res.status(404).json({ error: 'Contact not found' });
+}
+
+// res.status(201).json({
+    // 'message': 'Contact added successfully',
+    // 'contactId': newContactDocument._id
+// });
+
+
+const contactDocument = {
+    _id: newContactDocument._id,
+    office_phone,
+    office_did,
+    company_email
+};
 
             let newEmployeeDocument = {
+                employee_id: Number(employee_id),
                 name,
-                employee_id,
-                "supervisor": supervisorDocument,
-                designation, department, date_joined,
-                "contact": contactDocument
+                designation, department,
+                "contact": contactDocument,
+                date_joined,
+                "supervisor": supervisorDocument  
             }
 
-            // insert the new recipe document into the collection
-            let result = await db.collection("employee").insertOne(newEmployeeDocument);
+            // insert the new employee document into the collection
+            let result2 = await db.collection("employee").insertOne(newEmployeeDocument);
             res.status(201).json({
                 'message': 'New employee has been created',
-                'employeeId': result.insertedId // insertedId is the _id of the new document
+                '_id': result2.insertedId // insertedId is the _id of the new document
             })
-
+        }
 
         } catch (e) {
             console.error(e);
@@ -369,48 +438,153 @@ async function main() {
 
     //PUT => Update by replace
 
-    app.put("/employee/:id", async function (req, res) {
+    app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", async function (req, res) {
         try {
 
             let id = req.params.id;
-
-            // name, cuisine, prepTime, cookTime, servings, ingredients, instructions and tags
+            let contactId = req.params.contactId;
+            let supervisorId = req.params.supervisorId;
+    
+            // employee_id, name, designation, department, contact, date_joined, supervisor
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
             let { employee_id, name, designation, department, contact, date_joined, supervisor } = req.body;
 
-            // basic validation: make sure that name, cuisine, ingredients, instructions and tags
-            if (!name) {
-                return res.status(400).json({
-                    "error": "Missing fields required"
+            // basic validation: 
+            // make sure that name and employee_id is valid
+            if ((!name) || (!employee_id)) {
+                return res.status(400).json({"error": "Missing fields required"})
+            }
+
+            let supervisorDocument={};
+            let rank=supervisor.rank;
+
+            if (supervisor === null) {
+                supervisorDocument = null;
+            } else {
+                // find the _id of the related and add it to the supervisor
+                supervisorDocument = await db.collection('supervisor').findOne({
+                    "name": supervisor.name
                 })
-            }
 
-            // find the _id of the related cuisine and add it to the new recipe
-            let supervisorDocument = await db.collection('supervisor').findOne({
-                "name": supervisor
-            })
-
-            if (!supervisorDocument) {
-                return res.status(400).json({ "error": "Invalid supervisor" })
-            }
-
-            // find all the tags that the client want to attach to the recipe document
-            const contactDocument = await db.collection('contact').find({
-                'name': {
-                    '$in': contact
+                if (!supervisorDocument) {
+                    return res.status(400).json({"error":"Invalid supervisor"})
                 }
-            }).toArray();
+    
+
+                // Update the new supervisor object
+const updatedSupervisorDocument = {
+    // _id: new ObjectId(supervisorId),
+    employee_id: Number(employee_id),
+    name,
+    rank
+};
+
+supervisorDocument = {
+    employee_id: Number(supervisor.employee_id),
+    name:supervisor.name
+};
+
+// Update/add the supervisor collection
+// const result = await db.collection('supervisor').updateOne(
+    // { name: supervisor.name },
+    // { $push: { review_report: updatedSupervisorDocument } }
+// );
+
+// Update the specific supervisor.name in the supervisor document
+const result = await db.collection("supervisor")
+                .updateOne({
+                    name: supervisor.name
+                }, {
+                    "$set": { review_report: updatedSupervisorDocument }
+                });
+
+
+if (result.matchedCount === 0) {
+    return res.status(404).json({ error: 'Supervisor not found' });
+}
+
+// res.status(201).json({
+    // 'message': 'Supervisor added successfully',
+    // 'supervisorId': updatedSupervisorDocument.supervisor_id
+// });
+
+            // }
+
+            let address1 = contact.address1;
+            let address2 = contact.address2;
+            let address3 = contact.address3;
+            let mobile_phone = contact.mobile_phone;
+            let home_phone = contact.home_phone;
+            let office_phone = contact.office_phone;
+            let office_did = contact.office_did;
+            let personal_email = contact.personal_email;
+            let company_email = contact.company_email;
+
+            // find all the tags that the client want to attach to the employee document
+                let updatedContactDocument = await db.collection('contact').findOne({
+                    _id: new ObjectId(contactId)
+                })
+
+                if (!updatedContactDocument) {
+                    return res.status(400).json({"error":"Invalid contact"})
+                }
+    
+                // const newContactId = new ObjectId();
+                // Update the new contact object
+updatedContactDocument = {
+    _id: new ObjectId(contactId),
+    address1,
+    address2,
+    address3,
+    mobile_phone,
+    home_phone,
+    office_phone,
+    office_did,
+    personal_email,
+    company_email
+};
+
+// Update the new contact
+// Update the new contact document into the collection
+// let result3 = await db.collection("contact").insertOne(newContactDocument);
+let result3 = await db.collection("contact")
+                .updateOne({
+                    "_id": new ObjectId(contactId)
+                }, {
+                    "$set": updatedContactDocument
+                });
+
+
+if (result3.matchedCount === 0) {
+    return res.status(404).json({ error: 'Contact not found' });
+}
+
+// res.status(201).json({
+    // 'message': 'Contact added successfully',
+    // 'contactId': updatedContactDocument._id
+// });
+
+
+const contactDocument = {
+    _id: updatedContactDocument._id,
+    office_phone,
+    office_did,
+    company_email
+};
 
             let updatedEmployeeDocument = {
+                employee_id: Number(employee_id),
                 name,
-                employee_id,
-                "supervisor": supervisorDocument,
-                designation, department, date_joined,
-                "contact": contactDocument
+                designation, department,
+                "contact": contactDocument,
+                date_joined,
+                "supervisor": supervisorDocument  
             }
 
-            // insert the new recipe document into the collection
-            let result = await db.collection("employee")
+
+
+            // update the new employee document into the collection
+            let result2 = await db.collection("employee")
                 .updateOne({
                     "_id": new ObjectId(id)
                 }, {
@@ -418,7 +592,7 @@ async function main() {
                 });
 
             // if there is no matches, means no update took place
-            if (result.matchedCount == 0) {
+            if (result2.matchedCount == 0) {
                 return res.status(404).json({
                     "error": "Employee not found"
                 })
@@ -427,7 +601,7 @@ async function main() {
             res.status(200).json({
                 "message": "Employee updated"
             })
-
+        }
 
         } catch (e) {
             console.error(e);
