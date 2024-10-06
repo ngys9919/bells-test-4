@@ -133,20 +133,20 @@ taskforce (Additional Info)
 5. *role* ]
 ***
 
-This simple software is a server-side (backend) application for Employees NoSQL-Database System.
+This simple software is a RESTful API application for Employees NoSQL-Database System.
 
-It provides RESTful API endpoints for access using HTTP methods (like GET, POST, PUT and DELETE) to obtain the data from MongoDB NoSQL database system.
+It provides URI endpoints for access using HTTP methods (like GET, POST, PUT and DELETE) to obtain the data from MongoDB NoSQL database system.
 
 
 ![Employees NoSQL-Database System: MongoDB database](img/eds-database.png "database")
 
-![Employees NoSQL-Database System: GET](img/eds-get.png "GET => Read")
+![Employees NoSQL-Database System: GET](img/GET-Read.png "GET => Read")
 
-![Employees NoSQL-Database System: POST](img/eds-post.png "POST => Create")
+![Employees NoSQL-Database System: POST](img/POST-Create.png "POST => Create")
 
-![Employees NoSQL-Database System: PUT](img/eds-put.png "PUT => Update")
+![Employees NoSQL-Database System: PUT](img/PUT-Update.png "PUT => Update")
 
-![Employees NoSQL-Database System: DELETE](img/eds-delete.png "DELETE => Delete")
+![Employees NoSQL-Database System: DELETE](img/DELETE-Delete.png "DELETE => Delete")
 
 
 It also has a simple authorization security implemented using JSON Web Token (JWT).
@@ -186,8 +186,12 @@ The application could expand to include Front-End Development and new features l
 
 <!-- Heading level 2 -->
 ## Testing
+For testing of POST, PATCH, PUT and DELETE routes, we will need to use a REST client. There
+are a number of REST clients available for us to use, such as Postman, Insomnia etc. However,
+a simpler alternative is to use the Advanced Rest Client (or ARC for short).
+
 1. Using Test-Cases\
-   1.1 
+   1.1  
 
 
 
@@ -212,13 +216,13 @@ Thanks to Bells for support!
 <!-- Heading level 2 -->
 ## Technologies Used
 - [x] GitPod Cloud-hosted IDE
-- [x] MongoDB
-- [x] node/npm
-- [x] express
-- [x] cors
-- [x] dotenv
-- [x] bcrypt
-- [x] jsonwebtoken
+- [x] mongodb: enables connecting to database
+- [x] node/npm: create the Node application with node package manager for installing packages
+- [x] express: creates a HTTP server
+- [x] cors: enables cross origin resources sharing
+- [x] dotenv: stores sensitive information in a .env file
+- [x] bcrypt: allows the hash of our password
+- [x] jsonwebtoken: create a JWT (JSON Web Token) for access control to protected resources
 
 
 <!-- Heading level 2 -->
