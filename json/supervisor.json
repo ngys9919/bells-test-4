@@ -1,5 +1,6 @@
 [
   {
+    "_id": {"$oid": "507f1f77bcf86cd799439028"},
     "employee_id": 22,
     "name": "Jon Tan",
     "review_report": [
@@ -21,6 +22,7 @@
     ]
   },
   {
+    "_id": {"$oid": "507f1f77bcf86cd799439027"},
     "employee_id": 1003,
     "name": "Alex Chua",
     "review_report": [

@@ -295,6 +295,7 @@ async function main() {
 
     // POST => Create
     app.post("/employee", async function (req, res) {
+    // app.post("/employee", verifyToken, async function (req, res) {
         try {
 
             // name, employee_id, designation, department, contact, date_joined and supervisor
@@ -338,8 +339,6 @@ async function main() {
                     name: supervisor.name
                 };
 
-                // let result = false;
-
                 //review_report is object
                 // Add to the supervisor collection
                 // const result = await db.collection("supervisor")
@@ -347,18 +346,14 @@ async function main() {
                 //review_report is array
                 // Push to the supervisor collection
 
-                const result = await db.collection('supervisor').updateOne(
-                    { name: supervisor.name },
-                    { $push: { review_report: newSupervisorDocument } }
-                );
+                // const result = await db.collection('supervisor').updateOne(
+                    // { name: supervisor.name },
+                    // { $push: { review_report: newSupervisorDocument } }
+                // );
 
-
-
-
-
-                if (result.matchedCount === 0) {
-                    return res.status(404).json({ error: 'Supervisor not found' });
-                }
+                // if (result.matchedCount === 0) {
+                    // return res.status(404).json({ error: 'Supervisor not found' });
+                // }
 
                 // res.status(201).json({
                 // 'message': 'Supervisor added successfully',
@@ -447,13 +442,13 @@ async function main() {
     })
 
     //PUT => Update by replace
-
-    app.put("/employee/:id/contact/:contactId", async function (req, res) {
+    app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", async function (req, res) {
+    // app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", verifyToken, async function (req, res) {
         try {
 
             let id = req.params.id;
             let contactId = req.params.contactId;
-            // let supervisorId = req.params.supervisorId;
+            let supervisorId = req.params.supervisorId;
 
             // employee_id, name, designation, department, contact, date_joined, supervisor
             // when we use POST, PATCH or PUT to send data to the server, the data are in req.body
@@ -473,7 +468,7 @@ async function main() {
             } else {
                 // find the _id of the related and add it to the supervisor
                 supervisorDocument = await db.collection('supervisor').findOne({
-                    "name": supervisor.name,
+                    "name": supervisor.name
                 });
 
                 if (!supervisorDocument) {
@@ -482,43 +477,111 @@ async function main() {
 
                 // const supervisorIdDB = supervisorDocument._id;
 
+                // const query = { name: "Deli Llama" };
+                // const update = { $set: { name: "Deli Llama", address: "3 Nassau St" }};
+                // const options = { upsert: true };
+                // myColl.updateOne(query, update, options);
 
 
                 // Update the new supervisor object
-                const updatedSupervisorDocument = {
-                    // _id: new ObjectId(supervisorId),
-                    employee_id: Number(employee_id),
-                    name,
-                    rank
-                };
+                // const updatedSupervisorDocument = {
+                    // employee_id: Number(supervisor.employee_id),
+                    // name: supervisor.name,
+                    // "review_report": [{employee_id: Number(employee_id),
+                    // name,
+                    // rank }]
+                // };
 
                 supervisorDocument = {
                     employee_id: Number(supervisor.employee_id),
                     name: supervisor.name
                 };
 
-                // let result = false;
 
-                //switch supervisor, so push to last array element
-                // if (supervisorIdDB != supervisorId) {
-                // Add to the supervisor collection
-                const result = await db.collection('supervisor').updateOne(
-                    { name: supervisor.name },
-                    { $push: { review_report: updatedSupervisorDocument } }
-                );
+                // let result = await db.collection("supervisor")
+                    // .updateOne({
+                        // "_id": new ObjectId(supervisorId)
+                    // }, {
+                        // "$set": updatedSupervisorDocument
+                    // });
 
-                //same supervisor, so update the array element
-                // } else {
-                // Update the specific supervisor.name in the supervisor document
-                // const result = await db.collection("supervisor")
-                // .updateOne({
-                // name: supervisor.name
-                // }, {
-                // "$set": { review_report: updatedSupervisorDocument }
-                // });
-                // }
+                const query = {
+                    // "_id": new ObjectId(supervisorId),
+                    name: supervisor.name,
+                    "review_report": 
+                        { "$elemMatch": {
+                                "employee_id": employee_id
+                            }
+                        }
+                    }                
+                // const query = { "_id": new ObjectId(supervisorId) };
+                // const update = { $set: updatedSupervisorDocument };
+                // const updateArrayDocument = {
+                    // $set: { "review_report.$[i].rank":rank }
+                // };
+                // const options = { upsert: true };
+                const options = {};
+                // const options = {
+                    // arrayFilters: [
+                    //   {
+                        // "i.employee_id": employee_id
+                        // "i.item": { $not: { $regex: "oil" } },
+                    //   }
+                    // ]
+                //   };
+
+                // Existing supervisor, but old record, need to update old one
+                // In review_report, use set to update object the new info
+                const updateArrayDocument = {
+                    $set: {
+                        // _id: new ObjectId(supervisorId),
+                        employee_id: Number(supervisor.employee_id),
+                        name: supervisor.name,
+                        "review_report.$": {employee_id: Number(employee_id),
+                        name,
+                        rank }
+                    }
+                };
+
+                // Existing supervisor, but new record, need to add new one
+                // In review_report, use push object to array to append to the document
+                const pushArrayDocument = {
+                    $push: {
+                        "review_report": {employee_id: Number(employee_id),
+                        name,
+                        rank }
+                    }
+                };
+
+                // New supervisor, need to create new document
+                // Hence, need everything, that is, supervisor info and its supervised employee
+                // In review_report, use array to start new one
+                const newArrayDocument = {
+                    $set: {
+                        // _id: new ObjectId(supervisorId),
+                        employee_id: Number(supervisor.employee_id),
+                        name: supervisor.name,
+                        "review_report": [{employee_id: Number(employee_id),
+                        name,
+                        rank }]
+                    }
+                };
+
+                // If existing record, index will be found, hence positional operator $ will work and update that record
+                // Use $set to update to the supervisor collection
+                // let result = await db.collection("supervisor").updateOne(query, update, options);
+                let result = await db.collection("supervisor").updateOne(query, updateArrayDocument, options);
+
+                
+                if (result.matchedCount === 0) {
+                    // No match (not existing record), hence no index, positional operator $ cant work to update
+                    // New record, need push to add to the array end
+                    // Use $push to push to the supervisor collection
+                    result = await db.collection("supervisor").updateOne({name: supervisor.name}, pushArrayDocument, options);
+                }
 
                 if (result.matchedCount === 0) {
+                    // If still no matchedCount, meaning no result in updateNpush to the supervisor collection
                     return res.status(404).json({ error: 'Supervisor not found' });
                 }
 
@@ -630,8 +693,8 @@ async function main() {
 
 
     //DELETE => Delete
-
-    app.delete("/employee/:id", async function (req, res) {
+    // app.delete("/employee/:id", async function (req, res) {
+    app.delete("/employee/:id", verifyToken, async function (req, res) {
         try {
             let id = req.params.id;
 
