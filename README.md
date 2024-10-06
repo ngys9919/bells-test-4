@@ -20,7 +20,7 @@ Module 6: **Datacentric Development**
 >>> Employees NoSQL-Database System
 : 
 
-* src Folder (Sources Root)
+* BELLS-TEST-4 Folder (Sources Root)
 : index.js
 : .env
 : gitignore
@@ -29,11 +29,26 @@ Module 6: **Datacentric Development**
 : package-lock.json
 
 * IMG Folder (images)
+: Screenshot npm-init-y.png
+: Screenshot npm-install-1.png
+: Screenshot npm-install-2.png
 : eds-database.png
 : eds-get.png
 : eds-post.png
 : eds-put.png
 : eds-delete.png
+: jwt-users.png
+: jwt-login.png
+: jwt-profile.png
+: jwt-DELETE.png
+: wo-jwt-DELETE.png
+
+* JSON Folder (json)
+: q6-employees.md
+: employee.json
+: contact.json
+: supervisor.json
+: taskforce.json
 
 
 <!-- Heading level 1 -->
@@ -55,8 +70,9 @@ DELETE => D = Delete: remove existing information from the database
 
 Using MongoDB to store our database:
 
--XYZ : represents the entire company database\
+- company-xyz : represents the entire company database\
 employee collection: represents the documents related to employees\
+contact collection: represents the documents related to contact\
 supervisor collection: represents the documents related to supervisor\
 taskforce collection: represents the documents related to taskforce 
 
@@ -68,33 +84,59 @@ The application provides a one-stop entry point to the database management of em
 
 ***
 employee (Basic Info)
-1. *Employee ID*
-2. *Name*
-3. *Designation*
-4. *Department*
-5. *Address*
-6. *Data Joined*
-7. *Supervisor*
+1. *employee_id*
+2. *name*
+3. *designation*
+4. *department*
+5. *contact* [
+6. *_id*,
+7. *office_phone*,
+8. *office_did*,
+9. *company_email* ]
+10. *date_joined*
+11. *supervisor* [
+12. *employee_id*,
+13. *name* ]
+***
+
+***
+contact (Supplementary Info)
+1. *_id*
+2. *address1*
+3. *address2*
+4. *address3*
+5. *mobile_phone*
+6. *home_phone*
+7. *office_phone*
+8. *office_did*
+9. *personal_email*
+10. *company_email*
 ***
 
 ***
 supervisor (Additional Info)
-1. *supervisor name*
-2. *review report*
-3. *rank*
+1. *employee_id*
+2. *supervisor name*
+3. *review report* [
+4. *employee_id*,
+5. *name*,
+6. *rank* ]
+
 ***
 
 ***
 taskforce (Additional Info)
-1. *member name*
-2. *role*
+1. *_id*
+2. *members* [
+3. *employee_id,*
+4. *name,*
+5. *role* ]
 ***
 
 This simple software is a server-side (backend) application for Employees NoSQL-Database System.
 
 It provides RESTful API endpoints for access using HTTP methods (like GET, POST, PUT and DELETE) to obtain the data from MongoDB NoSQL database system.
 
-It also has a simple authorization security implemented using JSON Web Token (JWT).
 
 ![Employees NoSQL-Database System: MongoDB database](img/eds-database.png "database")
 
@@ -105,6 +147,19 @@ It also has a simple authorization security implemented using JSON Web Token (JW
 ![Employees NoSQL-Database System: PUT](img/eds-put.png "PUT => Update")
 
 ![Employees NoSQL-Database System: DELETE](img/eds-delete.png "DELETE => Delete")
+
+
+It also has a simple authorization security implemented using JSON Web Token (JWT).
+
+![Employees NoSQL-Database System: JWT-USER REGISTRATION](img/jwt-users.png "JWT /users")
+
+![Employees NoSQL-Database System: JWT-LOGIN -> accessToken](img/jwt-login.png "JWT /login")
+
+![Employees NoSQL-Database System: JWT-PROFILE OVERVIEW](img/jwt-profile.png "JWT /profile")
+
+![Employees NoSQL-Database System: DELETE with accessToken](img/jwt-DELETE.png "DELETE with accessToken")
+
+![Employees NoSQL-Database System: DELETE without accessToken](img/wo-jwt-DELETE.png "DELETE without accessToken")
 
 
 <!-- Heading level 4 -->

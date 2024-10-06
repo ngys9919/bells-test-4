@@ -322,7 +322,7 @@ async function main() {
                 })
 
                 if (!supervisorDocument) {
-                    return res.status(400).json({ "error": "Invalid supervisor" })
+                    // res.json({ "message": "New supervisor" })
                 }
 
 
@@ -339,26 +339,97 @@ async function main() {
                     name: supervisor.name
                 };
 
-                //review_report is object
-                // Add to the supervisor collection
-                // const result = await db.collection("supervisor")
-                // .insertOne(newSupervisorDocument);
-                //review_report is array
-                // Push to the supervisor collection
+                const query = {
+                    // "_id": new ObjectId(supervisorId),
+                    name: supervisor.name,
+                    "review_report": 
+                        { "$elemMatch": {
+                                "employee_id": employee_id
+                            }
+                        }
+                    }                
+                // const query = { "_id": new ObjectId(supervisorId) };
+                // const update = { $set: updatedSupervisorDocument };
+                // const updateArrayDocument = {
+                    // $set: { "review_report.$[i].rank":rank }
+                // };
+                // const options = { upsert: true };
+                const options = {};
+                // const options = {
+                    // arrayFilters: [
+                    //   {
+                        // "i.employee_id": employee_id
+                        // "i.item": { $not: { $regex: "oil" } },
+                    //   }
+                    // ]
+                //   };
 
-                // const result = await db.collection('supervisor').updateOne(
-                    // { name: supervisor.name },
-                    // { $push: { review_report: newSupervisorDocument } }
-                // );
+                // Existing supervisor, but old record, need to update old one
+                // In review_report, use set to update object the new info
+                const updateArrayDocument = {
+                    $set: {
+                        // _id: new ObjectId(supervisorId),
+                        employee_id: Number(supervisor.employee_id),
+                        name: supervisor.name,
+                        "review_report.$": {employee_id: Number(employee_id),
+                        name,
+                        rank }
+                    }
+                };
 
-                // if (result.matchedCount === 0) {
-                    // return res.status(404).json({ error: 'Supervisor not found' });
-                // }
+                // Existing supervisor, but new record, need to add new one
+                // In review_report, use push object to array to append to the document
+                const pushArrayDocument = {
+                    $push: {
+                        "review_report": {employee_id: Number(employee_id),
+                        name,
+                        rank }
+                    }
+                };
+
+                // New supervisor, need to create new document
+                // Hence, need everything, that is, supervisor info and its supervised employee
+                // In review_report, use array to start new one
+                // The Operators -> Update -> Fields -> $set must not be here because we are using insertOne
+                const newArrayDocument = {
+                        // _id: new ObjectId(supervisorId),
+                        employee_id: Number(supervisor.employee_id),
+                        name: supervisor.name,
+                        "review_report": [{employee_id: Number(employee_id),
+                        name,
+                        rank }]
+                };
+
+                // If existing record, index will be found, hence positional operator $ will work and update that record
+                // Use $set to update to the supervisor collection
+                // let result = await db.collection("supervisor").updateOne(query, update, options);
+                let result = await db.collection("supervisor").updateOne(query, updateArrayDocument, options);
+
+                
+                if (result.matchedCount === 0) {
+                    // No match (not existing record), hence no index, positional operator $ cant work to update
+                    // New record, need push to add to the array end
+                    // Use $push to push to the supervisor collection
+                    result = await db.collection("supervisor").updateOne({name: supervisor.name}, pushArrayDocument, options);
+                }
+
+                if (result.matchedCount === 0) {
+                    // If still no matchedCount, meaning no result in updateNpush to the supervisor collection
+                    // Must be new supervisor
+                    // res.json({ 'message': 'Supervisor not found! New supervisor' });
+                    result = await db.collection("supervisor").insertOne(newArrayDocument);
+
+                    // res.json({
+                        // 'message': 'New supervisor has been created',
+                        // 'supervisorId': newArrayDocument._id
+                    // });
+                }
 
                 // res.status(201).json({
                 // 'message': 'Supervisor added successfully',
-                // 'supervisorId': newSupervisorDocument._id
+                // 'supervisorId': updatedSupervisorDocument.supervisor_id
                 // });
+
 
                 // }
 
@@ -405,9 +476,9 @@ async function main() {
                     return res.status(404).json({ error: 'Contact not found' });
                 }
 
-                // res.status(201).json({
-                // 'message': 'Contact added successfully',
-                // 'contactId': newContactDocument._id
+                // res.json({
+                    // 'message': 'New contact has been created',
+                    // 'contactId': newContactDocument._id
                 // });
 
 
@@ -431,7 +502,7 @@ async function main() {
                 let result2 = await db.collection("employee").insertOne(newEmployeeDocument);
                 res.status(201).json({
                     'message': 'New employee has been created',
-                    '_id': result2.insertedId // insertedId is the _id of the new document
+                    'employeeId': result2.insertedId // insertedId is the _id of the new document
                 })
             }
 
@@ -582,6 +653,7 @@ async function main() {
 
                 if (result.matchedCount === 0) {
                     // If still no matchedCount, meaning no result in updateNpush to the supervisor collection
+                    // Must be new supervisor
                     return res.status(404).json({ error: 'Supervisor not found' });
                 }
 
