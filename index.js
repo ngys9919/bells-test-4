@@ -25,6 +25,38 @@ require('dotenv').config();
 // make sure to read data from process.env AFTER `require('dotenv').config()`
 const mongoUri = process.env.MONGO_URI;
 
+// Generate Secret Key
+
+// First, in your .env file, add in this:
+
+// TOKEN_SECRET=<secret>
+
+// Get a token secret from any source you like (such as https://www.randomkeygen.com),
+// or use the following code to generate one yourself.
+
+// In www.randomkeygen.com, use the following key type:
+// 256-bit WEP Keys
+// For example: CEAC79DE7ADC48743264F11F5A622
+
+// About RandomKeygen
+// Our free mobile-friendly tool offers a variety of randomly generated keys and
+// passwords you can use to secure any application, service or device. 
+// Simply click to copy a password or press the 'Generate' button for an entirely new set.
+
+// Password Recommendations
+// Your online passwords should always be between 8-12 characters long (more is always better) 
+// and should always include a combination of letters (both upper and lowercase), digits and symbols. 
+// And, don't forget to change your passwords regularly.
+
+// Put the following code into a file named generateSecret.js and
+// run it with node generateSecret.js. 
+
+// Copy the output and replace <secret> in the .env file.
+
+// const crypto = require('crypto');
+// const secret = crypto.randomBytes(64).toString('hex');
+// console.log(secret);
+
 // function to generate an access token
 function generateAccessToken(id, email) {
     // set the payload of the JWT (i.e, developers can add any data they want)
@@ -252,10 +284,6 @@ async function main() {
                 }
             }
 
-            // {"locations.areas.area_id": 159} , 
-            // { $set:{"locations.$[loc].areas.$[are].is_active":false }}, 
-            // { arrayFilters: [{ "loc.id": 618 }, { "are.area_id": 159 }] }
-
             let maximumNumberOfResults = 3;
 
             // mongo shell: db.taskforce.find({},{members.name:1, members.role:1})
@@ -458,6 +486,8 @@ async function main() {
     // } else {
         // console.log(`No listings found with at least ${minimumNumberOfBedrooms} bedrooms and ${minimumNumberOfBathrooms} bathrooms`);
     // }
+
+    // For find(criteria, projection) only:
 
     // 1st parameter-criteria
     // Example: Find all documents where the Key1 is Value1 and Key2 is Value2
@@ -879,6 +909,20 @@ async function main() {
     // console.log(`${result.matchedCount} document(s) matched the query criteria.`);
     // console.log(`${result.modifiedCount} document(s) was/were updated.`);
 
+    // options
+
+    // options using upsert
+    // const query = { name: "Deli Llama" };
+    // const update = { $set: { name: "Deli Llama", address: "3 Nassau St" }};
+    // const options = { upsert: true };
+    // myColl.updateOne(query, update, options);
+
+    // options using arrayFilters
+    // const query = {"locations.areas.area_id": 159}; 
+    // const update = { $set:{"locations.$[loc].areas.$[are].is_active":false }}; 
+    // const options = { arrayFilters: [{ "loc.id": 618 }, { "are.area_id": 159 }] };
+    // myColl.updateMany(query, update, options);
+
     app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", async function (req, res) {
     // app.put("/employee/:id/contact/:contactId/supervisor/:supervisorId", verifyToken, async function (req, res) {
         try {
@@ -916,11 +960,6 @@ async function main() {
                 }
 
                 // const supervisorIdDB = supervisorDocument._id;
-
-                // const query = { name: "Deli Llama" };
-                // const update = { $set: { name: "Deli Llama", address: "3 Nassau St" }};
-                // const options = { upsert: true };
-                // myColl.updateOne(query, update, options);
 
 
                 // Update the new supervisor object
@@ -1191,7 +1230,7 @@ async function main() {
     })
 
     // route for user to sign up
-    // the user must provide an email and password
+    // the user must provide an email and password to register for accessToken
     app.post('/users', async function (req, res) {
 
         try {
@@ -1222,7 +1261,8 @@ async function main() {
     })
 
 
-    // the client is supposed to provide the email and password in req.body
+    // The client is supposed to provide the email and password in req.body using /users
+    // By using /login, if the user has registered an account, the accessToken will be provided via this route
     app.post('/login', async function (req, res) {
         try {
             let { email, password } = req.body;
@@ -1257,6 +1297,46 @@ async function main() {
             res.status(statusCode_500_Internal_Server_Error);
         }
     })
+
+    // The /profile is a protected route, needs to verify accessToken.
+    // It gives the details of the payload of the registered user account like:
+    // "user_id" -> encrypted like "67029c190c4bd5ef5efe5152"
+    // "email" -> listed in clear like "ngys9919@yahoo.com"
+    // "iat" ->  "iSSUED at" claim like 1728225831
+    // "exp" -> "expIRATION TIME" claim like 1728229431
+
+    // Figure out how to determine the exact date and time which associated with the IAT value. 
+    // I know it's based on milliseconds, but I cannot relate this back to a date. 
+    // The official JWT specification says:(https://www.rfc-editor.org/rfc/rfc7519#page-10)
+
+    // 4.1.6. "iat" (Issued At) Claim 
+    // The "iat" (issued at) claim identifies the time at which the JWT was issued. 
+    // This claim can be used to determine the age of the JWT. 
+    // Its value MUST be a number containing a NumericDate value. 
+    // Use of this claim is OPTIONAL.
+
+    // 4.1.4.  "exp" (Expiration Time) Claim
+    // The "exp" (expiration time) claim identifies the expiration time on
+    // or after which the JWT MUST NOT be accepted for processing. 
+    // The processing of the "exp" claim requires that the current date/time
+    // MUST be before the expiration date/time listed in the "exp" claim.
+
+    // For example:
+    
+    // "iat": 1479203274,
+    // "exp": 1479205074,
+
+    // You can build a date from a unix timestamp in milliseconds by doing
+
+    // var date = new Date( timestamp )
+
+    // So in your case, try doing :
+
+    // var date = new Date( parseInt("1479203274") * 1000 )
+
+    // The *1000 is to convert seconds to milliseconds. 
+    // The parseInt is not necessary since javascript cast automatically the express to an number. 
+    // It's just to make it cleared in intent.
 
     // These 2 statements are the same effect,
     // 1 using lambda expression whilst 1 using callback function:
