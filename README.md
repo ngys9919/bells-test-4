@@ -33,10 +33,11 @@ Module 6: **Datacentric Development**
 : Screenshot npm-install-1.png
 : Screenshot npm-install-2.png
 : eds-database.png
-: eds-get.png
-: eds-post.png
-: eds-put.png
-: eds-delete.png
+: eds-search-employee-supervisor-name.png
+: POST-Create.png
+: GET-Read.png
+: PUT-Update.png
+: DELETE-Delete.png
 : jwt-users.png
 : jwt-login.png
 : jwt-profile.png
@@ -140,9 +141,11 @@ It provides URI endpoints for access using HTTP methods (like GET, POST, PUT and
 
 ![Employees NoSQL-Database System: MongoDB database](img/eds-database.png "database")
 
-![Employees NoSQL-Database System: GET](img/GET-Read.png "GET => Read")
+![Employees NoSQL-Database System: GET](img/eds-search-employee-supervisor-name.png "Query String => Search Engine")
 
 ![Employees NoSQL-Database System: POST](img/POST-Create.png "POST => Create")
+
+![Employees NoSQL-Database System: GET](img/GET-Read.png "GET => Read")
 
 ![Employees NoSQL-Database System: PUT](img/PUT-Update.png "PUT => Update")
 
