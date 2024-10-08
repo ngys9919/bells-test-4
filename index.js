@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const port = 3000;
+const port = 3002;
 const dbname = "company_xyz"; // CHANGE THIS TO YOUR ACTUAL DATABASE NAME
 
 // List of HTTP status codes Implemented
@@ -253,6 +253,20 @@ async function main() {
             email: 'ngys9919@yahoo.com'
         };
 
+        // Can I use multiple spaces in HTML directly?
+        // No, HTML collapses multiple spaces into a single space by default. 
+        // To add extra spaces, you need to use HTML entities or CSS.
+
+        // How do I insert a tab space in HTML?
+        // You can insert a tab space using the tab-size property in CSS 
+        // for pre-formatted text or use custom CSS with the margin-left property
+        // to create a tab effect.
+
+        // Is the tab-size property supported in all browsers?
+        // The tab-size property is supported in most modern browsers, 
+        // including Google Chrome, Microsoft Edge, Mozilla Firefox, Opera, and Safari.
+
+
         // Approaches to Adding Spaces and Tabs in Text
 
         // 1. Using the HTML Entities
@@ -302,20 +316,77 @@ async function main() {
         <title>BELLS-TEST-4</title>
         </head>
         <style>
+            .container { 
+                max-width: 720px; /* Maximum width of the container */ 
+                margin: 0 auto; /* Center the container */ 
+                padding: 20px; 
+                background-color: lightgrey; 
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+                transition: margin-left 0.3s; /* Smooth transition for margin-left */
+                overflow: scroll; // Handle Overflow 
+            } 
+            .tab {
+                display: inline-block;
+                margin-left: 15%;  /* for e.g: value = 40px*/
+                // position: relative;
+                // left: 20px;
+            }
             .tab4 
             {
                 tab-size: 8;
+            }
+
+            /* Responsive margin-left effect */
+
+            /* Extra small devices (phones, 600px and down) */
+            @media only screen and (max-width: 600px) {
+                .container {
+                    max-width: 420px; /* Maximum width of the container */
+                    margin-left:1%;
+                }
+            }
+
+            /* Small devices (portrait tablets and large phones, 600px and up) */
+            @media only screen and (min-width: 600px) {
+                .container {
+                    max-width: 600px; /* Maximum width of the container */
+                    margin-left:5%;
+                } 
+            }
+
+            /* Medium devices (landscape tablets, 768px and up) */
+            @media only screen and (min-width: 768px) {
+                .container {
+                    max-width: 600px; /* Maximum width of the container */
+                    margin-left:10%;
+                }
+            }
+            
+            /* Large devices (laptops/desktops, 992px and up) */
+            @media only screen and (min-width: 992px) {
+                .container {
+                    max-width: 720px; /* Maximum width of the container */
+                    margin-left:25%;
+                }
+            }
+
+            /* Extra large devices (large laptops and desktops, 1200px and up) */
+            @media only screen and (min-width: 1200px) {
+                .container {
+                    max-width: 720px; /* Maximum width of the container */
+                    margin-left:25%;
+                }
             }
         </style>
         <body>
         <div>
             <div style="text-align: center;">
-                <h1>Title: ${data.title}</h1>
+                <h1 style="text-decoration: underline;">Title: ${data.title}</h1>
                 <h3>Name: ${data.name}</h3>
                 <p style="font-size: 15pt; color: blue;">Email: ${data.email}</p>
             </div>
             </br>
-            <div style="text-align: left; margin-left: 450px;">
+            <div class="container">
                 <img src="img/eds-database.png" alt="database: company_xyz">
                 <h3>server url:<h3>
                 <h4>3000-ngys9919-bellstest4-ow3nfwhphp2.ws-us116.gitpod.io</h4>
@@ -323,26 +394,31 @@ async function main() {
                 <h3>format: </h3>
                 <pre class="tab4">route implemented:    http method, access control, description</pre>
                 <h3>implementations: </h3>
-                <pre class="tab4">/taskforce    GET, PUBLIC, This route can perform searches using query string with members, 
-                <wbr>with regular expression (^,$,.*), implicit setting 'i' for case-insensitive.</pre>
-                <pre class="tab4">/supervisor  GET, PUBLIC, This route can perform searches using query string with name,
+                <pre class="tab4">/taskforce    GET, PUBLIC, This route can get the complete taskforce list and 
+                <wbr>perform searches using query string with members, with regular expression (^,$,.*), 
+                <wbr>implicit setting 'i' for case-insensitive.</pre>
+                <pre class="tab4">/supervisor  GET, PUBLIC, This route can get the complete supervisor list and
+                <wbr>perform searches using query string with name, with substring search, case insensitive.</pre>
+                <pre class="tab4">/contact     GET, PUBLIC, This route get the complete contact list and has no search.</pre>
+                <pre class="tab4">/employee    GET, PUBLIC, This route can get the complete employee list and
+                <wbr>perform searches using query string with name and supervisor and combined,
                 <wbr>with substring search, case insensitive.</pre>
-                <pre class="tab4">/contact     GET, PUBLIC, This route has no search.</pre>
-                <pre class="tab4">/employee    GET, PUBLIC, This route can perform searches using query string with name and supervisor and combined, 
-                <wbr>with substring search, case insensitive.</pre>
-                <pre class="tab4">/employee/:id    GET, PUBLIC, This route can retrieve and display the detailed info
-                <wbr>on the employee with the provided _id using BSON format</pre>
-                <pre class="tab4">/employee     POST, PUBLIC, This route can create an employee record with the provided info 
-                <wbr>using JSON format</pre>
-                <pre class="tab4">/employee/:id/contact/:contactId/supervisor/:supervisorId      PUT, PUBLIC, This route can update 
-                <wbr>the employee and its contact and supervisor info with their respective _id using BSON format</pre>
-                <pre class="tab4">/employee/:id      DELETE, PROTECTED, This route can delete the employee record 
+                <pre class="tab4">/employee/:id    GET, PUBLIC, This route can retrieve the specified employee and
+                <wbr>display the detailed info on the employee with the provided _id using BSON format</pre>
+                <pre class="tab4">/employee     POST, PUBLIC, This route can create an employee record with the 
+                <wbr>provided info using JSON format, with fields name, employee_id, designation, department, 
+                <wbr>contact, date_joined and supervisor</pre>
+                <pre class="tab4">/employee/:id/contact/:contactId/supervisor/:supervisorId      PUT, PUBLIC, This route 
+                <wbr>can update the employee and its contact and supervisor info with their respective _id using 
+                <wbr>BSON format, with fields name, employee_id, designation, department, contact, date_joined and 
+                <wbr>supervisor</pre>
+                <pre class="tab4">/employee/:id      DELETE, PROTECTED, This route can delete the employee record
                 <wbr>with the provided _id using BSON format</pre>
-                <pre class="tab4">/users         POST, PUBLIC, This route is used for user registration 
-                <wbr>with provided email and password using JSON format</pre>
-                <pre class="tab4">/login     POST, PUBLIC, This route is used to login with email and 
-                <wbr>obtain the accessToken for protected access to resource like delete and profile routes</pre>
-                <pre class="tab4">/profile   GET, PROTECTED, This route is used to read the registered user info 
+                <pre class="tab4">/users         POST, PUBLIC, This route is used for user registration with provided
+                <wbr>email and password using JSON format</pre>
+                <pre class="tab4">/login     POST, PUBLIC, This route is used to login with email and obtain the
+                <wbr>accessToken for protected access to resource like delete and profile routes</pre>
+                <pre class="tab4">/profile   GET, PROTECTED, This route is used to read the registered user info
                 <wbr>with info like user_id (hashed), email, iat (issued at) and exp (expiry time).</pre>
             </div>
         </div>
