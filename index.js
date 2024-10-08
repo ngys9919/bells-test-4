@@ -226,22 +226,33 @@ async function main() {
         // The 'res' response to the client can only sent once.
         // Cannot set headers after they are sent to the client.
 
-        res.json({
-            "title": "RESTful API with Mongo and Express!",
-            "/": "root route",
-            "route implemented": "<http method>, <access control>",
-            "/taskforce": "GET",
-            "/supervisor": "GET",
-            "/contact": "GET",
-            "/employee": "GET",
-            "/employee/:id": "GET",
-            "/employee": "POST",
-            "/employee/:id/contact/:contactId/supervisor/:supervisorId": "PUT",
-            "/employee/:id": "DELETE, PROTECTED",
-            "/users": "POST",
-            "/login": "POST",
-            "/profile": "GET, PROTECTED",
-        });
+        res.send(
+            "\
+            <h1>title: RESTful API with Mongo and Express!</h1>\
+            </br>\
+            <p>/:     root route</p>\
+            <p>route implemented: http method, access control</p>\
+            "
+        );
+
+
+
+        // res.json({
+            // "title": "RESTful API with Mongo and Express!",
+            // "/": "root route",
+            // "route implemented": "<http method>, <access control>",
+            // "/taskforce": "GET",
+            // "/supervisor": "GET",
+            // "/contact": "GET",
+            // "/employee": "GET",
+            // "/employee/:id": "GET",
+            // "/employee": "POST",
+            // "/employee/:id/contact/:contactId/supervisor/:supervisorId": "PUT",
+            // "/employee/:id": "DELETE, PROTECTED",
+            // "/users": "POST",
+            // "/login": "POST",
+            // "/profile": "GET, PROTECTED",
+        // });
 
         // send back a response using the 'res' object using html format
         // res.send("Hello World");
@@ -258,10 +269,10 @@ async function main() {
     // ?tags=appetizer&ingredients=chicken,duck
 
     // Search Engine
-    // The /taskforce route can perform searches using members.
-    // The /supervisor route can perform searches using name.
+    // The /taskforce route can perform searches using members with regular expression (^,$,.*), implicit setting 'i' for case-insensitive.
+    // The /supervisor route can perform searches using name, with substring search, case insensitive.
     // The /contact route has no search.
-    // The /employee route can perform searches using name and supervisor and combined.
+    // The /employee route can perform searches using name and supervisor and combined, with substring search, case insensitive.
 
     // The client will specify the search criteria via query strings.
 
@@ -272,9 +283,12 @@ async function main() {
 
     // Here are some examples:
 
+    // Search by members: https://<server url>/taskforce?members=JoN
     // Search by members: https://<server url>/taskforce?members=Alex%20CHUA
-    // Search by members: https://<server url>/taskforce?members=Alex%20CHUA,JON tan
-    // Search by members: https://<server url>/taskforce?members=Alex%20CHUA,JON tan,Kow
+    // Search by members: https://<server url>/taskforce?members=^A
+    // Search by members: https://<server url>/taskforce?members=CHua$
+    // Search by members: https://<server url>/taskforce?members=^AnDREW NG$
+    // Search by members: https://<server url>/taskforce?members=A.*hu
 
     app.get("/taskforce", async function (req, res) {
         try {
@@ -287,7 +301,23 @@ async function main() {
 
             let criteria = {};
             let criteria2 = "";
-            let criteria3 = "/JoN/i";
+            let criteria3 = "/JoN/i"; // this wont work, it seems /pattern/ is meant for literal expression, not part of variable
+
+            // var search = "Jon"; // this work: For substring search, case sensitive without implicit options: 'i'
+            // var search = members; // this work: For substring search, case sensitive without implicit options: 'i'
+            // var search = "^A"; // this work: Allow the anchor (^) character to find string starting with A
+            // var search = "\/JoN\/i"; // this wont work
+            // var search = req.query.val; // this wont work
+            // var search = "^" + members; // this work
+            //var search = "Ng$"; // this work: Allow the anchor ($) character to find string ending with Ng
+            // var search ="\/" + members + "\/i"; // this wont work
+            // var search = "^" + members + "$"; // this work: For exact search, case sensitive without implicit options: 'i'
+            // var search = "JoN" + "," + "i"; // this wont work
+            // var search = "A.*hu"; // this work: Allow the dot (.) character to match all characters including new line 
+            // var search = members + ".*"; // no impact by putting ".*" in the end, maybe for including new line
+            // var search = 'JoN'; // this will work: For substring search, case insensitive with implicit options: 'i' 
+            // var search = "JoN" + ", options: " + "'i'"; // this wont work
+            var search = members;
 
             // input: GET /taskforce?members=Alex,JoN
             // criteria =
@@ -319,9 +349,9 @@ async function main() {
                         return new RegExp(i, 'i');
                     }).toString();
 
-                criteria2 = members.toString();
+                criteria2 = members.toString();  // this can work! for exact string search using regex
 
-                criteria3 = criteria3.toString();
+                criteria3 = criteria3.toString(); // this wont work
             }
 
             // Example                                 Result
@@ -336,9 +366,8 @@ async function main() {
             console.log(criteria);
             console.log();
             // console.log(members.name); // TypeError: Cannot read properties of undefined (reading 'name')
-            console.log(criteria2);
+            console.log(search);
             console.log();
-            console.log(criteria3);
 
             let maximumNumberOfResults = 3;
 
@@ -428,7 +457,7 @@ async function main() {
                             // var search = 'Joe';
                             // db.users.find(name: new RegExp(search)) //For substring search, case sensitive. 
                             // db.users.find(name: new RegExp('^' + search + '$')) //For exact search, case sensitive
-                            // db.users.find(name: new RegExp(search， ‘i')) //For substring search, case insensitive
+                            // db.users.find(name: new RegExp(search，'i')) //For substring search, case insensitive
                             // db.users.find(name: new RegExp('^' +search + '$', 'i')); //For exact search, case insensitive
 
                             // You need to create a regular expression object from the string 
@@ -489,8 +518,8 @@ async function main() {
                             // let q = '^' + query;
                             // return await User.find({ name: { $regex: q, $options: 'i' } }).select('name').limit(10);
 
-                            
-                            cond: { $regexMatch: { input: "$$member.name", regex: criteria2 }}        
+                            cond: { $regexMatch: { input: "$$member.name", regex: new RegExp(search), options: 'i' }}   
+                            // cond: { $regexMatch: { input: "$$member.name", regex: new RegExp(search) }}        
                             
                          }
                       }
@@ -655,7 +684,7 @@ async function main() {
                     // "taskforce.members.role": 1
                 // }).sort({ "taskforce.members.name": -1 })
                 // .limit(maximumNumberOfResults);
-            const taskforce = await cursor3.toArray();
+            const taskforce = await cursor.toArray();
 
 
             // I have an array that dynamically holds document id's, 
