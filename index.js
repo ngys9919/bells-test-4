@@ -221,19 +221,147 @@ async function main() {
 
     console.log("Mongo Database connected!");
 
+    // Response formats in Node.js
+
+    // 1. JSON (JavaScript Object Notation): A lightweight data interchange format 
+    // that is easy for humans to read and write, and easy for machines to parse
+    // and generate. It is widely used for data transmission between clients and servers and 
+    // for storing structured data.
+    
+    // 2. XML (eXtensible Markup Language): A markup language that defines 
+    // rules for encoding documents in a format that is both human-readable 
+    // and machine-readable. It is often used for data interchange, 
+    // configuration files, and representing structured data in web services.
+    
+    // 3. HTML (Hypertext Markup Language): The standard markup language for 
+    // creating webpages and web applications. It defines the structure and
+    // presentation of content on the web and is interpreted by web browsers to
+    // render the content to the user.
+    
+    // 4. YAML (YAML Ain’t Markup Language): A human-readable data 
+    // serialization format that is often used for configuration files and data 
+    // exchange between systems. It aims to be more friendly to human users 
+    // with easy-to-read syntax and support for complex data structures
+    
     app.get('/', function (req, res) {
         
         // The 'res' response to the client can only sent once.
         // Cannot set headers after they are sent to the client.
+        const data = {
+            title: "RESTful API with MongoDB and Express!",
+            name: 'Ng Yew Seng',
+            email: 'ngys9919@yahoo.com'
+        };
 
-        res.send(
-            "\
-            <h1>title: RESTful API with Mongo and Express!</h1>\
-            </br>\
-            <p>/:     root route</p>\
-            <p>route implemented: http method, access control</p>\
-            "
-        );
+        // Approaches to Adding Spaces and Tabs in Text
+
+        // 1. Using the HTML Entities
+        // HTML entities can be used to insert non-breaking spaces, en spaces, and em spaces in text. 
+        // These entities help in adding precise spacing within the text.
+
+        // Non-Breaking Space (&nbsp;): Denotes a fixed space that is perceived as twice the space of a normal 
+        // space. It prevents line breaks at its location.
+        
+        // En Space (&ensp;): Represents a space equal to half the point size of the current font.
+        
+        // Em Space (&emsp;): Represents a space equal to the point size of the current font, perceived as four 
+        // times the space of a normal space.
+
+        // Syntax
+        // &nbsp;    <!-- Regular space -->
+        // &ensp;    <!-- Two spaces gap -->
+        // &emsp;    <!-- Four spaces gap -->
+
+        // 2. Using tab-size Property in CSS
+        // The tab-size property in CSS is used to set the number of spaces each tab character will display. This 
+        // method works with pre-formatted text (using <pre> tags). The tab character can be inserted by holding 
+        // the Alt key and pressing 0 and 9 together.
+
+        // Syntax
+        // .tab {
+            // tab-size: value; /* for e.g: value = 2*/
+        // }
+
+        
+        // 3. Using Custom CSS
+        // A new class can be created to provide a specific amount of spacing using the margin-left property. The 
+        // amount of space can be controlled by the number of pixels specified. The display property is set to 
+        // inline-block to ensure the space sits next to text and other elements without line breaks.
+        
+        // Syntax
+        // .tab {
+            // display: inline-block;
+            // margin-left: value;  /* for e.g: value = 40px*/
+        // }
+
+        
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>BELLS-TEST-4</title>
+        </head>
+        <style>
+            .tab4 
+            {
+                tab-size: 8;
+            }
+        </style>
+        <body>
+        <div>
+            <div style="text-align: center;">
+                <h1>Title: ${data.title}</h1>
+                <h3>Name: ${data.name}</h3>
+                <p style="font-size: 15pt; color: blue;">Email: ${data.email}</p>
+            </div>
+            </br>
+            <div style="text-align: left; margin-left: 450px;">
+                <img src="img/eds-database.png" alt="database: company_xyz">
+                <h3>server url:<h3>
+                <h4>3000-ngys9919-bellstest4-ow3nfwhphp2.ws-us116.gitpod.io</h4>
+                <b>/: &emsp; root route</b>
+                <h3>format: </h3>
+                <pre class="tab4">route implemented:    http method, access control, description</pre>
+                <h3>implementations: </h3>
+                <pre class="tab4">/taskforce    GET, PUBLIC, This route can perform searches using query string with members, 
+                <wbr>with regular expression (^,$,.*), implicit setting 'i' for case-insensitive.</pre>
+                <pre class="tab4">/supervisor  GET, PUBLIC, This route can perform searches using query string with name,
+                <wbr>with substring search, case insensitive.</pre>
+                <pre class="tab4">/contact     GET, PUBLIC, This route has no search.</pre>
+                <pre class="tab4">/employee    GET, PUBLIC, This route can perform searches using query string with name and supervisor and combined, 
+                <wbr>with substring search, case insensitive.</pre>
+                <pre class="tab4">/employee/:id    GET, PUBLIC, This route can retrieve and display the detailed info
+                <wbr>on the employee with the provided _id using BSON format</pre>
+                <pre class="tab4">/employee     POST, PUBLIC, This route can create an employee record with the provided info 
+                <wbr>using JSON format</pre>
+                <pre class="tab4">/employee/:id/contact/:contactId/supervisor/:supervisorId      PUT, PUBLIC, This route can update 
+                <wbr>the employee and its contact and supervisor info with their respective _id using BSON format</pre>
+                <pre class="tab4">/employee/:id      DELETE, PROTECTED, This route can delete the employee record 
+                <wbr>with the provided _id using BSON format</pre>
+                <pre class="tab4">/users         POST, PUBLIC, This route is used for user registration 
+                <wbr>with provided email and password using JSON format</pre>
+                <pre class="tab4">/login     POST, PUBLIC, This route is used to login with email and 
+                <wbr>obtain the accessToken for protected access to resource like delete and profile routes</pre>
+                <pre class="tab4">/profile   GET, PROTECTED, This route is used to read the registered user info 
+                <wbr>with info like user_id (hashed), email, iat (issued at) and exp (expiry time).</pre>
+            </div>
+        </div>
+        </body>
+        </html>
+  `     ;
+
+        res.header('Content-Type', 'text/html');
+        res.send(html);
+
+        // res.send(
+            // "\
+            // <h1>title: RESTful API with Mongo and Express!</h1>\
+            // <p>/: root route</p>\
+            // <h3>format: </h3>\
+            // <p>route implemented: http method, access control</p>\
+            // </br>\
+            // "
+        // );
 
 
 
