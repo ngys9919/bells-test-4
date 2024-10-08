@@ -222,6 +222,10 @@ async function main() {
     console.log("Mongo Database connected!");
 
     app.get('/', function (req, res) {
+        
+        // The 'res' response to the client can only sent once.
+        // Cannot set headers after they are sent to the client.
+
         res.json({
             "title": "RESTful API with Mongo and Express!",
             "/": "root route",
@@ -238,6 +242,12 @@ async function main() {
             "/login": "POST",
             "/profile": "GET, PROTECTED",
         });
+
+        // send back a response using the 'res' object using html format
+        // res.send("Hello World");
+
+        // send back a response using the 'res' object using JSON format
+        // res.json({ "message":"Hello World!" });
     });
 
     // There's a convention for RESTFul API when it comes to writing the URL
@@ -269,34 +279,426 @@ async function main() {
     app.get("/taskforce", async function (req, res) {
         try {
 
-            // this is the same as let tags = req.query.tags etc. etc.
+            // this is the same as let members = req.query.members
             // syntax: object destructuring
             let { members } = req.query;
 
-            let criteria = {};
+            console.log(members);
 
+            let criteria = {};
+            let criteria2 = "";
+            let criteria3 = "/JoN/i";
+
+            // input: GET /taskforce?members=Alex,JoN
+            // criteria =
+            // { 'members.name': { '$in': [ /Alex/i, /JoN/i ] } }
+            // if (members) {
+                // criteria["members.name"] = {
+                    // "$in": members.split(",").map(function (i) {
+                        // case-insensitive search
+                        // return new RegExp(i, 'i');
+                    // })
+                // }
+            // }
+
+            // input: GET /taskforce?members=Alex,JoN
+            // criteria =
+            // [ /Alex/i, /JoN/i ] => this is not valid for $regexMatch becaues it only recognises one /pattern/ only
+            
+            // input: GET /taskforce?members=JoN
+            // criteria =
+            // /JoN/i => this is valid for $regexMatch becaues it only recognises one /pattern/ only
+
+            // input: GET /taskforce?members=Alex Chua
+            // criteria2 =
+            // Alex Chua => this is valid for criteria becaues it only recognises string only
             if (members) {
-                criteria["members"] = {
-                    "$in": members.split(",").map(function (i) {
+                criteria = 
+                    members.split(",").map(function (i) {
                         // case-insensitive search
                         return new RegExp(i, 'i');
-                    })
-                }
+                    }).toString();
+
+                criteria2 = members.toString();
+
+                criteria3 = criteria3.toString();
             }
+
+            // Example                                 Result
+            // { $literal: { $add: [ 2, 3 ] } }        { "$add" : [ 2, 3 ] }
+            // { $literal: { $literal: 1 } }           { "$literal" : 1 }
+
+            // $regexMatch needs 'regex' to be of type string or regex
+            // regex: /^A/       => uses $regexMatch to filter for items that have a name value that starts with A
+            // regex: /n$/       => uses $regexMatch to filter for items that have a name value that ends with n
+            // regex: /JoN/i     => uses $regexMatch to filter for items that have a name value that is case-insensitive for JoN
+
+            console.log(criteria);
+            console.log();
+            // console.log(members.name); // TypeError: Cannot read properties of undefined (reading 'name')
+            console.log(criteria2);
+            console.log();
+            console.log(criteria3);
 
             let maximumNumberOfResults = 3;
 
+            // The find() method returns a FindCursor that manages the results of your query. 
+            // You can iterate through the matching documents using one of the following cursor methods:
+
+            // next()
+            // toArray()
+            // forEach()
+
+            // If no documents match the query, find() returns an empty cursor
+
+            // $unwind will ‘explode’ your array elements into separate documents. 
+            
+            // If you are using the aggregation pipeline, 
+            // there is a separate $filter stage that filters arrays to given conditions.
+
+            // Project Specific Array Elements in the Returned Array
+
+            // For fields that contain arrays, MongoDB provides the following projection operators 
+            // for manipulating arrays: 
+            
+            // $elemMatch
+            // $slice
+            // $
+
+            // $elemMatch, $slice, and $ are the only operators that you can use to project 
+            // specific elements to include in the returned array. 
+            
+            // For instance, you cannot project specific array elements using the array index; 
+            // e.g. { "instock.0": 1 } projection does not project the array with the first element.
+
+            // Query for a Document Nested in an Array
+
+            // Equality matches on the whole embedded/nested document require an exact match 
+            // of the specified document, including the field order. 
+            
+
+            // $filter (aggregation)
+
+            // Definition: $filter
+            // Selects a subset of an array to return based on the specified condition. 
+            // Returns an array with only those elements that match the condition. 
+            // The returned elements are in the original order.
+
+            // Syntax
+            // $filter has the following syntax:
+
+            // {
+                // $filter:
+                        // {
+                            // input: <array>,
+                            // as: <string>,
+                            // cond: <expression>,
+                            // limit: <number expression>
+                        // }
+            // }
+            
+            const cursor = db.collection('taskforce').aggregate( [
+                {
+                    $project: {
+                      members: {
+                         $filter: {
+                            input: "$members",
+                            as: "member",
+                            // Filter Based on Number Comparison
+                            // cond: { $gte: [ "$$member.employee_id", 100 ] }
+                            // Filter Based on String Equality Match
+                            // cond: { $eq: [ "$$member.role", "member"] }
+                            // Filter Based on Regular Expression Match
+                            // cond: { $regexMatch: { input: "$$member.name", regex: /Alex/i }}
+                            // cond: { $regexMatch: { input: "$$member.name", regex: /JoN/i }}
+                            // cond: { $regexMatch: { input: "$$member.name", regex: /^A/ }}
+                            //cond: { $regexMatch: { input: "$$member.name", regex: criteria2 }}
+                            
+                            // Filter Based on Multiple Expressions (enclosed in 1 x [])
+                            // An object representing an expression must have exactly one field
+                            // cond: {"$or" : [
+                                        // { "$eq" : [ "$$member.employee_id", 1142 ] },
+                                        // { "$eq" : [ "$$member.name", "Andrew Ng" ] }, 
+                                        // { $gte: [ "$$member.employee_id", 100 ] },
+                                    // {$regexMatch: { input: "$$member.name", regex: /n$/ }}]}
+
+
+                            // How can I use a regex variable in a query for MongoDB
+
+                            // var search = 'Joe';
+                            // db.users.find(name: new RegExp(search)) //For substring search, case sensitive. 
+                            // db.users.find(name: new RegExp('^' + search + '$')) //For exact search, case sensitive
+                            // db.users.find(name: new RegExp(search， ‘i')) //For substring search, case insensitive
+                            // db.users.find(name: new RegExp('^' +search + '$', 'i')); //For exact search, case insensitive
+
+                            // You need to create a regular expression object from the string 
+                            // using the RegExp constructor as the /.../ syntax is only for use with literals.
+                            
+                            // var randnum = Math.floor((Math.random() * 10) + 1);
+                            // var alpha = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','X','Y','Z'];
+                            // var randletter = alpha[Math.floor(Math.random() * alpha.length)];
+                            // var val = randletter + randnum + '.*;
+
+                            // var val = randletter + ".*" + randnum + ".*";
+                            // var stream = collection.find({"FirstName": new RegExp(val)}).stream();
+
+                            // Firstname is just a string of letters and numbers.
+                            
+                            // var val = randletter + randnum + '.*'; 
+                            // var stream = collection.find({"FirstName": {$regex:val}}).stream(); 
+
+                            // I tried it a couple of times it always returned an empty set. 
+                            // The other version var stream = collection.find({"FirstName": new RegExp(val)}).stream(); worked.
+                            
+                            // let pattern = '/^\/'+ cat + '/';
+                            // collection.find({name: new RegExp(pattern)});
+                            // Remove the / characters from pattern and it will work. 
+
+                            // Use the following code to use dynamic value in regex with or operations
+                            // { $match: { $or: [{ 'title': { $regex:  request.query.val, $options: 'i'} }, { 'skills_required': { $regex:  request.query.val, $options: 'i'} }] }},
+                            
+                            // If you want to use the variable val as a parameter of the query part, you can use $regex, for example:
+
+                            // collection.find({"FirstName": {$regex:val}})
+
+                            // It is not allowed to put $regex in $in operator according to the manual.
+
+                            // If you want to put regular expression object in $in operator, 
+                            // you have to use JavaScript regular expression object, 
+                            // for example:
+
+                            // collection.find({"FirstName": {$in: [/abc/, /123/]}})
+
+                            // By the way, val in /val/ is constant string, not the variable as you defined above.
+
+
+                            // If your regex includes a variable, make sure to escape it.
+
+                            // function escapeRegExp(string) {
+                                // return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+                            // }
+
+                            // This can be used like this
+
+                            // new RegExp(escapeRegExp(searchString), 'i')
+
+                            // Or in a mongoDb query like this
+
+                            // { '$regex': escapeRegExp(searchString) }
+
+                            // let q = '^' + query;
+                            // return await User.find({ name: { $regex: q, $options: 'i' } }).select('name').limit(10);
+
+                            
+                            cond: { $regexMatch: { input: "$$member.name", regex: criteria2 }}        
+                            
+                         }
+                      }
+                   }
+                }
+            ] );
+
+            // In the first stage using the $match operator, we get only the document we need and
+            // then we add the $project stage. Inside this stage, we project all the fields we need and, 
+            // through the $filter operator, we tell the database which fields inside the array we want to project, too.
+
+            // The $filter operator has three variables:
+            // input: the array we are going to work with
+            // as: reference name
+            // cond: our requirements
+
+            const cursor3 = db.collection('taskforce').aggregate( [
+                {
+                    "$match" : { // Match documents that have employee_id > 22
+                        "members" : {
+                              "$gt" : { "employee_id" : 22 }
+                        }
+                    }
+
+                    // Match documents that satisfy these conditions
+                    // "$match" : {
+                        // "members" : {
+                        //    "$elemMatch" : {
+                            //   "$and" : [
+                                //  { "employee_id" : 1003 },
+                                //  { "name" : "Alex Chua" }
+                            //   ]
+                        //    }
+                        // },
+                    // }
+                },
+                {
+                    $project:{ // Project documents by further filter with employee_id > 995 in this format
+                        _id: 0,
+                        members: {
+                            "$filter" : {
+                                "input" : "$members",
+                                "as" : "member",
+                                "cond" : { "$gt" : [ "$$member.employee_id", 995 ] }
+                            }
+                        }
+                    }
+
+                    // Project documents in this format
+                    // "$project" : {
+                        // "_id" : 1,
+                        // "members" : {
+                        //    "$filter" : {
+                            //   "input" : "$members",
+                            //   "as" : "member",
+                            //   "cond" : {
+                                //  "$and" : [
+                                    // { "$eq" : [ "$$member.employee_id", 1003 ] },
+                                    // { "$eq" : [ "$$member.name", "Alex Chua" ] }
+                                //  ]
+                            //   }
+                        //    }
+                        // }
+                    // }
+                }
+            ] );
+
+
+            const cursor2 = db.collection('taskforce').aggregate( [
+                {
+                    // $gt (aggregation)
+                    
+                    // $gt has the following syntax:
+
+                    // { $gt: [ <expression1>, <expression2> ] }
+                    
+                    // Compares two values and returns:
+
+                    // true when the first value is greater than the second value.
+                    // false when the first value is less than or equal to the second value.
+
+                    // The $gt compares both value and type, 
+                    // using the specified BSON comparison order for values of different types.
+
+                    $project: {
+                        _id: 0,
+                        members: 1,
+                        employee_id_gt_1: { $gt: [ "$members.employee_id", 1 ] }, //true since all employee_id is greater than 1
+                        employee_id_gt_22: { $gt: [ "$employee_id", 22 ] }, //false since only some employee_id is greater than 22
+                        supervised_list: {
+                            // $let only supports an object as its argument
+                            $let: {
+                            // vars: { employee: 1, high: "$employee_id" },
+                            // in: { $gt: [ "$$employee", "$$high" ] } // "supervised_list": true
+                            // vars: { employee: 1, high: "$employee_id" },
+                            // in: { $gt: [ "$$high", "$$employee" ] } // "supervised_list": false
+                            vars: { employee: 1, high: "$employee" },
+                            in: { $eq: [ "$$employee", "$$high" ] } // "supervised_list": false
+                            } 
+                        }
+                     }
+
+                    // A sales collection has the following documents:
+
+                    // { _id: 1, price: 10, tax: 0.50, applyDiscount: true }
+                    // { _id: 2, price: 10, tax: 0.25, applyDiscount: false }
+
+                    // The following aggregation uses $let in the $project pipeline stage
+                    // to calculate and return the finalTotal for each document:
+                    
+                    // The aggregation returns the following results:
+
+                    // { "_id" : 1, "finalTotal" : 9.450000000000001 }
+                    // { "_id" : 2, "finalTotal" : 10.25 }
+                    
+                    // $project: {
+                        // finalTotal: {
+                        //    $let: {
+                            //   vars: {
+                                //  total: { $add: [ '$price', '$tax' ] },
+                                //  discounted: { $cond: { if: '$applyDiscount', then: 0.9, else: 1 } }
+                            //   },
+                            //   in: { $multiply: [ "$$total", "$$discounted" ] }
+                        //    }
+                        // }
+                    //  }
+
+
+
+                    // $project: {
+                        //  "role" : "$members.role",
+                        // $in requires an array as a second argument
+                        // "member": { $in: [ "A", members[0] ]},             
+                    // }
+                }
+            ] );
+
             // mongo shell: db.taskforce.find({},{members.name:1, members.role:1})
-            // const cursor = db.collection("taskforce").find({"members": {"$elemMatch": {'name':'Alex Chua'}}})
-            const cursor = db.collection("taskforce").find(criteria)
-                .project({
-                    "members.name": 1,
-                    "members.role": 1
-                }).sort({ "members.name": -1 })
-                .limit(maximumNumberOfResults);
-            const taskforce = await cursor.toArray();
+            // const cursor = db.collection('taskforce').find( 
+                // find all docs where test contains element with name A
+                // { members: { $elemMatch: { name: 'A' } } })
+                // { members: { $elemMatch: { employee_id: 1003, name: "Alex Chua", role: "secretary" } } }) //v1 correct version, display 1 element
+                // { members: { $elemMatch: { employee_id: { $gte: 1 }, name: { $regex: '^A' }, role: { $regex: '^m' } } }}) //v2 correct version, display 1 element
+                // project the marches docs so only the test array is returned, 
+                // and only the elements where name is A
+                // .project( { members: { $elemMatch: { name: 'A' } } }
+                // .project( { members: { $elemMatch:  { employee_id: 1003, name: "Alex Chua", role: "secretary" } } } //v1 correct version, display 1 element
+                // .project( { members: { $elemMatch:  { employee_id: { $gte: 1 }, name: { $regex: '^A' }, role: { $regex: '^m' } } } } //v2 correct version, display 1 element
+            // );
+            // const cursor = db.collection('taskforce').find( { name: 'Alex Chua', $or: [{name: 'Jon'}, {role : { $regex: '^m' }}]} );
+            // const cursor = db.collection('taskforce').find({ name: 'Alex Chua', role: 'secretary'}).project({"members.name": 1, "members.role": 1});
+            // const cursor = db.collection('taskforce').find( { members: { employee_id: 1003, name: "Alex Chua", role: "secretary" } }).project({"members.name": 1, "members.role": 1}); //v3 correct version, display all elements (note: field and order must match)
+            // const cursor = db.collection('taskforce').find( { "members.name": "Alex Chua", "members.role": "secretary"} ); //v4 correct version, display all elements (note: order and field not important)
+            // const cursor = db.collection('taskforce').find( { members: { name: 'Alex Chua', role: 'secretary' } }).project({"name": 1, "role": 1});
+            // const cursor = db.collection('taskforce').find({ "members.name": { $in: ["Alex Chua"] } });
+            // const cursor = db.collection("taskforce").find({"members": {"$elemMatch": {'members':'Alex Chua'}}});
+            // const cursor = db.collection("taskforce").find(criteria)
+                // .project({
+                    // { projection: { _id: 0 } }, // to exclude the _id field, you must set its value to 0
+                    // _id:0, // to exclude the _id field, you must set its value to 0
+                    // "taskforce.members.name": 1,
+                    // "taskforce.members.role": 1
+                // }).sort({ "taskforce.members.name": -1 })
+                // .limit(maximumNumberOfResults);
+            const taskforce = await cursor3.toArray();
+
+
+            // I have an array that dynamically holds document id's, 
+            // in which I need to query another collcetion in mongo to see if the id's match. 
+            
+            // I have this code:
+            
+            // let collection = database.collection('login')
+
+            // let doc = await collection.find({ email: req.session.username }).toArray()
+
+            // let array_of_docs_bought = []
+            // for (var i = 0; i < doc.length; i++) {
+                // array_of_docs_bought.push(...doc[i].list_of_docs_bought)
+            // }
+
+            // let documents = await database.collection('documents').find({ "id": { $in: array_of_docs_bought } }).toArray()
+
+            // This would be done via the 'spread operator': ...
+            // Spread syntax requires ...iterable[Symbol.iterator] to be a function
+
+            // taskforce[i].name is not iterable (cannot read property undefined)
+
+            // let array_taskforce_members = [];
+            // for (var i = 0; i < taskforce.length; i++) {
+                // delete taskforce[i]._id; // to remove _id simply add this delete
+                // array_taskforce_members.push(taskforce[i].name);
+            // }
+
+            // let documents = await database.collection('documents')
+                // .find({ "id": { $in: array_taskforce_members } })
+                // .toArray();
+            
+            // res.json({
+                // array_taskforce_members
+            // })
+
+            // res.json({
+                // 'taskforce': taskforce
+            // })
+
             res.json({
-                'taskforce': taskforce
+                taskforce
             })
         } catch (error) {
             console.error("Error fetching taskforce record:", error);
