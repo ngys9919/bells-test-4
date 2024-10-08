@@ -6,7 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const port = 3002;
+const port = 3000;
 const dbname = "company_xyz"; // CHANGE THIS TO YOUR ACTUAL DATABASE NAME
 
 // List of HTTP status codes Implemented
@@ -267,7 +267,7 @@ async function main() {
         // including Google Chrome, Microsoft Edge, Mozilla Firefox, Opera, and Safari.
 
 
-        // Approaches to Adding Spaces and Tabs in Text
+        // Approaches to Adding Spaces and Tabs in HTML
 
         // 1. Using the HTML Entities
         // HTML entities can be used to insert non-breaking spaces, en spaces, and em spaces in text. 
@@ -308,7 +308,34 @@ async function main() {
             // margin-left: value;  /* for e.g: value = 40px*/
         // }
 
+        // Approaches to Adding Lines in HTML
         
+        // # RAW
+        // ## Creates 2 Lines that CAN be selected as text
+        // ## -------------------------------------------------
+        // ### The non-breaking space ASCII character
+        // &nbsp;
+        // &nbsp;
+
+        // ### HTML <br/> or  </br> tag
+        // <br />
+        // <br />
+
+        // ## Creates 2 Lines that CANNOT be selected as text
+        // ## -------------------------------------------------
+        // ### HTML Entity &NewLine;
+        // &NewLine;
+        // &NewLine;
+
+        // ### Backticks with a space inside followed by two spaces
+        // `(space)`(space)(space)
+        // `(space)`(space)(space)
+        // #### sample:
+        // ` `  
+        // ` `
+
+        // # End
+
         const html = `
         <!DOCTYPE html>
         <html>
@@ -383,11 +410,13 @@ async function main() {
             <div style="text-align: center;">
                 <h1 style="text-decoration: underline;">Title: ${data.title}</h1>
                 <h3>Name: ${data.name}</h3>
+                &NewLine;
                 <p style="font-size: 15pt; color: blue;">Email: ${data.email}</p>
             </div>
             </br>
             <div class="container">
                 <img src="img/eds-database.png" alt="database: company_xyz">
+                <br/>
                 <h3>server url:<h3>
                 <h4>3000-ngys9919-bellstest4-ow3nfwhphp2.ws-us116.gitpod.io</h4>
                 <b>/: &emsp; root route</b>
@@ -404,20 +433,20 @@ async function main() {
                 <wbr>perform searches using query string with name and supervisor and combined,
                 <wbr>with substring search, case insensitive.</pre>
                 <pre class="tab4">/employee/:id    GET, PUBLIC, This route can retrieve the specified employee and
-                <wbr>display the detailed info on the employee with the provided _id using BSON format</pre>
+                <wbr>display the detailed info on the employee with the provided _id using BSON format.</pre>
                 <pre class="tab4">/employee     POST, PUBLIC, This route can create an employee record with the 
                 <wbr>provided info using JSON format, with fields name, employee_id, designation, department, 
-                <wbr>contact, date_joined and supervisor</pre>
+                <wbr>contact, date_joined and supervisor.</pre>
                 <pre class="tab4">/employee/:id/contact/:contactId/supervisor/:supervisorId      PUT, PUBLIC, This route 
                 <wbr>can update the employee and its contact and supervisor info with their respective _id using 
                 <wbr>BSON format, with fields name, employee_id, designation, department, contact, date_joined and 
-                <wbr>supervisor</pre>
+                <wbr>supervisor.</pre>
                 <pre class="tab4">/employee/:id      DELETE, PROTECTED, This route can delete the employee record
-                <wbr>with the provided _id using BSON format</pre>
+                <wbr>with the provided _id using BSON format.</pre>
                 <pre class="tab4">/users         POST, PUBLIC, This route is used for user registration with provided
-                <wbr>email and password using JSON format</pre>
+                <wbr>email and password using JSON format.</pre>
                 <pre class="tab4">/login     POST, PUBLIC, This route is used to login with email and obtain the
-                <wbr>accessToken for protected access to resource like delete and profile routes</pre>
+                <wbr>accessToken for protected access to resource like delete and profile routes.</pre>
                 <pre class="tab4">/profile   GET, PROTECTED, This route is used to read the registered user info
                 <wbr>with info like user_id (hashed), email, iat (issued at) and exp (expiry time).</pre>
             </div>
@@ -501,7 +530,7 @@ async function main() {
             // syntax: object destructuring
             let { members } = req.query;
 
-            console.log(members);
+            // console.log(members);
 
             let criteria = {};
             let criteria2 = "";
@@ -567,13 +596,13 @@ async function main() {
             // regex: /n$/       => uses $regexMatch to filter for items that have a name value that ends with n
             // regex: /JoN/i     => uses $regexMatch to filter for items that have a name value that is case-insensitive for JoN
 
-            console.log(criteria);
-            console.log();
+            // console.log(criteria);
+            // console.log();
             // console.log(members.name); // TypeError: Cannot read properties of undefined (reading 'name')
-            console.log(search);
-            console.log();
+            // console.log(search);
+            // console.log();
 
-            let maximumNumberOfResults = 3;
+            // let maximumNumberOfResults = 3;
 
             // The find() method returns a FindCursor that manages the results of your query. 
             // You can iterate through the matching documents using one of the following cursor methods:
